@@ -15,6 +15,10 @@
   <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20Desktop-1d9e75?style=for-the-badge"/>
 </p>
 
+<p align="center">
+  <img src="./naad-banner.png" alt="NAAD Safety Edition 2026 — Cadet Media Ghana" width="100%"/>
+</p>
+
 ---
 
 ## 📌 Overview
