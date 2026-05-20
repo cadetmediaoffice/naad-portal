@@ -19,6 +19,14 @@
   <img src="./naad-banner.png" alt="NAAD Safety Edition 2026 — Cadet Media Ghana" width="100%"/>
 </p>
 
+<p align="center">
+  <a href="https://cadetmediaoffice.github.io/naad-portal/naad-portal.html">
+    <img src="https://img.shields.io/badge/%F0%9F%9A%80%20Open%20NAAD%20Portal-Click%20to%20Access%20%26%20Install-e8a020?style=for-the-badge" alt="Open NAAD Portal"/>
+  </a>
+</p>
+
+> 📲 **Agency Officers:** Click the button above to open the portal. On **Android** — tap the gold *"Install NAAD Portal App"* banner. On **iPhone** — tap Share → *Add to Home Screen*. On **Desktop** — click the install icon in your browser address bar.
+
 ---
 
 ## 📌 Overview
