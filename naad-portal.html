@@ -1709,9 +1709,13 @@ function initAll() {
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./naad-sw.js')
+    // Use GitHub Pages URL when hosted, fallback for local
+    const swUrl = window.location.hostname === 'cadetmediaoffice.github.io'
+      ? 'https://cadetmediaoffice.github.io/naad-portal/naad-sw.js'
+      : './naad-sw.js';
+    navigator.serviceWorker.register(swUrl)
       .then(r => console.log('NAAD SW registered:', r.scope))
-      .catch(e => console.warn('SW not available (serve from a web server to enable offline):', e.message));
+      .catch(e => console.warn('SW not available:', e.message));
   });
 }
 </script>
