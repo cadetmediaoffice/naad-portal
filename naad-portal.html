@@ -1903,15 +1903,12 @@ function initAll() {
 
 
 <script>
-if ('serviceWorker' in navigator) {
+// Only register SW when served from GitHub Pages — skip silently everywhere else
+if ('serviceWorker' in navigator && window.location.hostname === 'cadetmediaoffice.github.io') {
   window.addEventListener('load', () => {
-    // Use GitHub Pages URL when hosted, fallback for local
-    const swUrl = window.location.hostname === 'cadetmediaoffice.github.io'
-      ? 'https://cadetmediaoffice.github.io/naad-portal/naad-sw.js'
-      : './naad-sw.js';
-    navigator.serviceWorker.register(swUrl)
-      .then(r => console.log('NAAD SW registered:', r.scope))
-      .catch(e => console.warn('SW not available:', e.message));
+    navigator.serviceWorker.register('https://cadetmediaoffice.github.io/naad-portal/naad-sw.js')
+      .then(r => console.log('✅ NAAD SW registered:', r.scope))
+      .catch(e => console.log('SW registration failed:', e.message));
   });
 }
 </script>

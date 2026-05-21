@@ -57,20 +57,45 @@ body{font-family:'IBM Plex Sans',sans-serif;background:var(--navy);color:var(--t
 
 /* DOWNLOAD BUTTON */
 .dl-btn-wrap{padding:4px 22px 18px;}
-.dl-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:15px;background:linear-gradient(135deg,#f0a820,#c87c10);color:var(--navy);border:none;border-radius:12px;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;letter-spacing:0.04em;cursor:pointer;text-decoration:none;box-shadow:0 8px 28px rgba(232,160,32,0.35);transition:opacity .15s;position:relative;overflow:hidden;}
+.dl-btn{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;padding:15px;
+  background:linear-gradient(135deg,#f0a820,#c87c10);
+  color:var(--navy);border:none;border-radius:12px;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:15px;
+  letter-spacing:0.04em;cursor:pointer;
+  box-shadow:0 8px 28px rgba(232,160,32,0.35);
+  transition:opacity .15s;
+  position:relative;overflow:hidden;
+}
 .dl-btn:hover{opacity:.88;}
-.dl-btn.loading{pointer-events:none;opacity:.8;}
+.dl-btn.loading{pointer-events:none;}
 .dl-btn .btn-text{transition:opacity .2s;}
 .dl-btn.loading .btn-text{opacity:0;}
 .dl-progress{
   position:absolute;inset:0;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
-  opacity:0;transition:opacity .2s;pointer-events:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  opacity:0;transition:opacity .25s;pointer-events:none;
+  padding:0 20px;
 }
 .dl-btn.loading .dl-progress{opacity:1;}
-.progress-bar{width:70%;height:4px;background:rgba(13,26,46,0.3);border-radius:2px;overflow:hidden;}
-.progress-fill{height:100%;background:var(--navy);border-radius:2px;width:0%;transition:width .1s linear;}
-.progress-label{font-size:11px;color:var(--navy);font-weight:700;}
+.progress-track{width:100%;height:5px;background:rgba(13,26,46,0.35);border-radius:3px;overflow:hidden;}
+.progress-fill{
+  height:100%;background:var(--navy);border-radius:3px;
+  width:0%;
+  transition:width 0.4s ease;
+}
+.progress-label{font-size:11px;color:var(--navy);font-weight:800;letter-spacing:0.03em;}
+/* Shimmer on progress fill */
+@keyframes shimmer{
+  0%{background-position:-200% 0}
+  100%{background-position:200% 0}
+}
+.progress-fill.active{
+  background:linear-gradient(90deg,rgba(13,26,46,0.6) 25%,rgba(13,26,46,0.9) 50%,rgba(13,26,46,0.6) 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.2s infinite;
+}
 
 /* PRIVACY NOTE */
 .privacy-note{font-size:11px;color:var(--dim);text-align:center;padding:0 22px 16px;line-height:1.6;}
@@ -146,7 +171,7 @@ footer{padding:40px 20px;text-align:center;border-top:1px solid var(--border);}
         <button class="dl-btn" id="dl-mobile" onclick="startDownload('mobile')">
           <span class="btn-text">📲 Download &amp; Install</span>
           <div class="dl-progress">
-            <div class="progress-bar"><div class="progress-fill" id="pf-mobile"></div></div>
+            <div class="progress-track"><div class="progress-fill" id="pf-mobile"></div></div>
             <div class="progress-label" id="pl-mobile">Preparing…</div>
           </div>
         </button>
@@ -178,7 +203,7 @@ footer{padding:40px 20px;text-align:center;border-top:1px solid var(--border);}
         <button class="dl-btn" id="dl-desktop" onclick="startDownload('desktop')">
           <span class="btn-text">💻 Download &amp; Install</span>
           <div class="dl-progress">
-            <div class="progress-bar"><div class="progress-fill" id="pf-desktop"></div></div>
+            <div class="progress-track"><div class="progress-fill" id="pf-desktop"></div></div>
             <div class="progress-label" id="pl-desktop">Preparing…</div>
           </div>
         </button>
@@ -251,34 +276,41 @@ function startDownload(type) {
   if (btn.classList.contains('loading')) return;
 
   btn.classList.add('loading');
-  let pct = 0;
+  fill.style.width = '0%';
+  fill.classList.add('active');
 
   const steps = [
-    [15,  400, 'Checking connection…'],
-    [40,  700, 'Loading portal…'],
-    [65,  600, 'Verifying resources…'],
-    [85,  500, 'Almost ready…'],
-    [100, 400, 'Done! Opening…'],
+    { pct: 10, delay: 200,  text: '🔍 Checking connection…'   },
+    { pct: 30, delay: 600,  text: '📡 Connecting to server…'  },
+    { pct: 55, delay: 700,  text: '📥 Loading portal…'        },
+    { pct: 75, delay: 600,  text: '🔐 Verifying resources…'   },
+    { pct: 90, delay: 500,  text: '⚙️ Almost ready…'          },
+    { pct: 100,delay: 400,  text: '✅ Done! Opening portal…'  },
   ];
 
   let i = 0;
   function next() {
     if (i >= steps.length) {
-      // Open portal
+      // Open portal in new tab
       window.open(PORTAL_URL, '_blank');
+      // Reset button after short delay
       setTimeout(() => {
         btn.classList.remove('loading');
+        fill.classList.remove('active');
+        fill.style.transition = 'none';
         fill.style.width = '0%';
+        setTimeout(() => { fill.style.transition = 'width 0.4s ease'; }, 50);
         lbl.textContent = 'Preparing…';
-      }, 800);
+      }, 1200);
       return;
     }
-    const [target, delay, text] = steps[i++];
-    fill.style.width = target + '%';
-    lbl.textContent = text;
-    setTimeout(next, delay);
+    const step = steps[i++];
+    fill.style.width = step.pct + '%';
+    lbl.textContent  = step.text;
+    setTimeout(next, step.delay);
   }
-  next();
+  // Small initial delay so user sees the button change state
+  setTimeout(next, 100);
 }
 </script>
 </body>
