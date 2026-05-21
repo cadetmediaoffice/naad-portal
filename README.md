@@ -20,12 +20,27 @@
 </p>
 
 <p align="center">
+  <a href="https://cadetmediaoffice.github.io/naad-portal/">
+    <img src="https://img.shields.io/badge/📲%20Download%20%26%20Install%20App-Tap%20Here-e8a020?style=for-the-badge" alt="Download & Install"/>
+  </a>
+  &nbsp;
   <a href="https://cadetmediaoffice.github.io/naad-portal/naad-portal.html">
-    <img src="https://img.shields.io/badge/%F0%9F%9A%80%20Open%20NAAD%20Portal-Click%20to%20Access%20%26%20Install-e8a020?style=for-the-badge" alt="Open NAAD Portal"/>
+    <img src="https://img.shields.io/badge/🚀%20Open%20Portal%20Directly-For%20Desktop%20Users-1d9e75?style=for-the-badge" alt="Open Portal"/>
   </a>
 </p>
 
-> 📲 **Agency Officers:** Click the button above to open the portal. On **Android** — tap the gold *"Install NAAD Portal App"* banner. On **iPhone** — tap Share → *Add to Home Screen*. On **Desktop** — click the install icon in your browser address bar.
+> ## 📲 How to Download & Install the App
+>
+> **Step 1** — Click the gold **"Download & Install App"** button above — it opens the install guide page.
+>
+> **Step 2** — Select your device: **📱 Mobile** or **💻 Desktop**
+>
+> **Step 3** — Follow the simple numbered steps for your OS (Android / iPhone / Chrome / Edge)
+>
+> **Step 4** — Tap **"Open & Install"** and the app installs on your home screen or desktop — no app store needed ✅
+>
+> ---
+> 💡 **Can't see the install page?** Make sure all 5 files are uploaded to this repo: `index.html`, `naad-portal.html`, `naad-sw.js`, `naad-banner.png`, `README.md`
 
 ---
 
