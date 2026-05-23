@@ -1982,7 +1982,124 @@ function formatDate(iso) {
 }
 
 // ── INIT ──
+// ════════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════════
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  const target = document.getElementById('page-' + page);
+  if (target) target.classList.add('active');
+
+  const navItem = document.querySelector('[data-page="' + page + '"]');
+  if (navItem) navItem.classList.add('active');
+
+  const titles = {
+    dashboard:      'Dashboard',
+    submit:         'Submit Question',
+    'my-questions': 'My Questions',
+    review:         'Review All',
+    agencies:       'Agency Overview',
+    progress:       'Agency Progress',
+    deadlines:      'Deadlines',
+    broadcast:      'Broadcast',
+    export:         'Export Quiz',
+    leaderboard:    'Leaderboard',
+    analytics:      'Analytics',
+    guidelines:     'Guidelines'
+  };
+  const titleEl = document.getElementById('topbar-title');
+  if (titleEl) titleEl.textContent = titles[page] || page;
+
+  // Load data for the tab being opened
+  if (page === 'my-questions')  loadMyQuestions();
+  if (page === 'dashboard')     renderDashboard();
+  if (page === 'leaderboard')   renderLeaderboard();
+  if (page === 'analytics')     renderAnalytics();
+  if (currentUser && currentUser.role === 'admin') {
+    if (page === 'review')    loadReviewQuestions();
+    if (page === 'agencies')  renderAgencies();
+    if (page === 'progress')  renderProgress();
+    if (page === 'deadlines') renderDeadlines();
+    if (page === 'broadcast') renderBroadcastHistory();
+  }
+
+  if (window.innerWidth <= 768) closeSidebar();
+}
+
+// Wire up nav items after DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.addEventListener('click', () => navigate(btn.dataset.page));
+  });
+});
+
+// ── SIDEBAR MOBILE ──
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => t.style.display = 'none', 3500);
+}
+
+// ── FORM HELPERS ──
+function updateCount(inputId, countId, max) {
+  const el = document.getElementById(inputId);
+  const c  = document.getElementById(countId);
+  if (el && c) c.textContent = el.value.length;
+}
+
+function selectCorrect(btn, val) {
+  document.querySelectorAll('.correct-opt').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  correctAnswer = val;
+}
+
+// ── PWA INSTALL ──
+function pwaInstall() {
+  if (window._deferredPrompt) {
+    window._deferredPrompt.prompt();
+    window._deferredPrompt.userChoice.then(r => {
+      if (r.outcome === 'accepted') showToast('🎉 Installing NAAD Portal…');
+      window._deferredPrompt = null;
+    });
+  }
+}
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  window._deferredPrompt = e;
+  const bar = document.getElementById('pwa-install-bar');
+  if (bar) bar.style.display = 'flex';
+});
+window.addEventListener('appinstalled', () => {
+  const bar = document.getElementById('pwa-install-bar');
+  if (bar) bar.style.display = 'none';
+  showToast('✅ NAAD Portal installed!');
+});
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
 function initAll() {
+  // Wire nav clicks
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.addEventListener('click', () => navigate(btn.dataset.page));
+  });
+
   renderDashboard();
   loadMyQuestions();
   if (currentUser.role === 'admin') {
