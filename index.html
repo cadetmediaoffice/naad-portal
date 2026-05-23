@@ -358,11 +358,34 @@ function startDownload(type) {
   fill.style.width = '0%';
   fill.classList.add('active');
 
-  // Start downloading the portal file silently in background
+  // ── Fetch portal file + trigger real browser download ──
+  let downloadDone = false;
+  let progressDone = false;
+
+  function tryReveal() {
+    if (downloadDone && progressDone) showReveal();
+  }
+
+  // Fetch and trigger actual file download
   fetch(PORTAL_URL)
     .then(r => r.blob())
-    .then(blob => { window._portalBlob = blob; })
-    .catch(() => { window._portalBlob = null; });
+    .then(blob => {
+      // Create a real download
+      const a    = document.createElement('a');
+      a.href     = URL.createObjectURL(blob);
+      a.download = 'naad-portal.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+      downloadDone = true;
+      tryReveal();
+    })
+    .catch(() => {
+      // If fetch blocked, just open directly
+      downloadDone = true;
+      tryReveal();
+    });
 
   const steps = [
     { pct: 10, delay: 200,  text: '🔍 Checking connection…'  },
@@ -376,8 +399,8 @@ function startDownload(type) {
   let i = 0;
   function next() {
     if (i >= steps.length) {
-      // Show NAAD reveal screen
-      setTimeout(() => showReveal(), 400);
+      progressDone = true;
+      tryReveal();
       return;
     }
     const step = steps[i++];
