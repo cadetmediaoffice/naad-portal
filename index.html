@@ -238,7 +238,10 @@ footer{padding:40px 20px;text-align:center;border-top:1px solid var(--border);}
         <button class="ostab" onclick="switchOS('m','ios',this)">🍎 iPhone / iPad</button>
       </div>
       <div class="os-panel active" id="m-android">
-        <div class="step"><div class="snum">1</div><div class="sbody">Tap <strong>Download & Install</strong> below.<div class="shint">Wait for the progress bar to complete — it's preparing the app.</div></div></div>
+        <div class="step"><div class="snum">1</div><div class="sbody">Tap <strong>Open &amp; Install</strong> below — the portal opens directly in <strong>Chrome</strong>.<div class="shint">⚠️ Do NOT open .html files from your Files app — Google Play Protect will block them. Always use this button.</div></div></div>
+        <div class="step"><div class="snum">2</div><div class="sbody">Once the portal loads in Chrome, tap the gold <strong>"Install NAAD Portal App"</strong> banner at the bottom.<div class="shint">If no banner appears, tap Chrome's ⋮ menu → "Add to Home Screen"</div></div></div>
+        <div class="step"><div class="snum">3</div><div class="sbody">Tap <strong>Install</strong> — the NAAD icon appears on your home screen and opens fullscreen like a native app. ✅</div></div>
+      </div>
         <div class="step"><div class="snum">2</div><div class="sbody">Chrome opens and shows a gold <strong>"Install NAAD Portal App"</strong> banner at the bottom — tap it.<div class="shint">Or tap ⋮ menu → "Add to Home Screen"</div></div></div>
         <div class="step"><div class="snum">3</div><div class="sbody">Tap <strong>Install</strong> on the prompt — the NAAD icon appears on your home screen. ✅<div class="shint">Opens fullscreen like a native app.</div></div></div>
       </div>
@@ -249,7 +252,7 @@ footer{padding:40px 20px;text-align:center;border-top:1px solid var(--border);}
       </div>
       <div class="dl-btn-wrap">
         <button class="dl-btn" id="dl-mobile" onclick="startDownload('mobile')">
-          <span class="btn-text">📲 Download &amp; Install</span>
+          <span class="btn-text" id="mobile-btn-text">📲 Open &amp; Install</span>
           <div class="dl-progress">
             <div class="progress-track"><div class="progress-fill" id="pf-mobile"></div></div>
             <div class="progress-label" id="pl-mobile">Preparing…</div>
@@ -358,49 +361,46 @@ function startDownload(type) {
   fill.style.width = '0%';
   fill.classList.add('active');
 
-  // ── Fetch portal file + trigger real browser download ──
-  let downloadDone = false;
-  let progressDone = false;
+  // ── Smart install: Android opens portal directly in Chrome ──
+  // ── Desktop/iOS: show progress then reveal install screen  ──
+  const isAndroid = /Android/i.test(navigator.userAgent);
 
-  function tryReveal() {
-    if (downloadDone && progressDone) showReveal();
-  }
-
-  // Fetch and trigger actual file download
-  fetch(PORTAL_URL)
-    .then(r => r.blob())
-    .then(blob => {
-      // Create a real download
-      const a    = document.createElement('a');
-      a.href     = URL.createObjectURL(blob);
-      a.download = 'naad-portal.html';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(a.href);
-      downloadDone = true;
-      tryReveal();
-    })
-    .catch(() => {
-      // If fetch blocked, just open directly
-      downloadDone = true;
-      tryReveal();
-    });
-
-  const steps = [
-    { pct: 10, delay: 200,  text: '🔍 Checking connection…'  },
-    { pct: 30, delay: 700,  text: '📡 Connecting to server…' },
-    { pct: 55, delay: 800,  text: '📥 Downloading portal…'   },
-    { pct: 75, delay: 700,  text: '🔐 Verifying resources…'  },
-    { pct: 90, delay: 600,  text: '⚙️ Almost ready…'         },
-    { pct: 100,delay: 500,  text: '✅ Complete!'              },
+  const steps = isAndroid ? [
+    { pct: 20,  delay: 300,  text: '🔍 Checking device…'       },
+    { pct: 50,  delay: 500,  text: '📡 Preparing portal…'      },
+    { pct: 80,  delay: 400,  text: '⚙️ Almost ready…'          },
+    { pct: 100, delay: 300,  text: '✅ Opening in Chrome…'     },
+  ] : [
+    { pct: 10,  delay: 200,  text: '🔍 Checking connection…'  },
+    { pct: 30,  delay: 700,  text: '📡 Connecting to server…' },
+    { pct: 55,  delay: 800,  text: '📥 Loading portal…'       },
+    { pct: 75,  delay: 700,  text: '🔐 Verifying resources…'  },
+    { pct: 90,  delay: 600,  text: '⚙️ Almost ready…'         },
+    { pct: 100, delay: 500,  text: '✅ Complete!'              },
   ];
 
   let i = 0;
   function next() {
     if (i >= steps.length) {
-      progressDone = true;
-      tryReveal();
+      if (isAndroid) {
+        // Android: open portal directly in Chrome — do NOT download HTML file
+        // Google Play Protect blocks HTML files opened from Downloads
+        setTimeout(() => {
+          window.location.href = PORTAL_URL;
+        }, 400);
+        // Reset button
+        setTimeout(() => {
+          btn.classList.remove('loading');
+          fill.classList.remove('active');
+          fill.style.transition = 'none';
+          fill.style.width = '0%';
+          setTimeout(() => { fill.style.transition = 'width 0.4s ease'; }, 50);
+          lbl.textContent = 'Preparing…';
+        }, 1000);
+      } else {
+        // Desktop / iOS: show reveal screen with install instructions
+        setTimeout(() => showReveal(), 400);
+      }
       return;
     }
     const step = steps[i++];
@@ -467,9 +467,12 @@ window.addEventListener('beforeinstallprompt', e => {
       📲 Open &amp; Install Now
     </a>
     <div class="rev-install-note">
-      <strong>Android:</strong> Tap the gold install banner in Chrome &nbsp;·&nbsp;
-      <strong>iPhone:</strong> Share → Add to Home Screen &nbsp;·&nbsp;
-      <strong>Desktop:</strong> Click ⊕ in address bar
+      <strong>Android:</strong> Use Chrome → tap ⋮ → "Add to Home Screen" &nbsp;·&nbsp;
+      <strong>iPhone:</strong> Safari → Share → Add to Home Screen &nbsp;·&nbsp;
+      <strong>Desktop:</strong> Click ⊕ in Chrome/Edge address bar
+    </div>
+    <div style="background:rgba(201,64,64,0.1);border:1px solid rgba(201,64,64,0.3);border-radius:8px;padding:10px 14px;font-size:11px;color:#e06060;max-width:380px;line-height:1.7;margin-top:4px;">
+      ⚠️ <strong>Android users:</strong> Do NOT open the downloaded .html file from your Files app — Google Play Protect will block it. Always open via Chrome using the button above.
     </div>
     <button class="rev-back" onclick="closeReveal()">← Back to download page</button>
   </div>
