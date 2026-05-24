@@ -684,8 +684,32 @@
     #sidebar-overlay.open { display: block; }
     #main { margin-left: 0; }
     #topbar { padding-left: 60px; }
+    #content { padding: 16px 14px; }
     .options-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat-card { padding: 14px; }
+    .stat-value { font-size: 22px; }
+    .card { padding: 16px; }
+    .quick-actions { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .qa-btn { padding: 12px; }
+    /* Tables scroll horizontally on mobile */
+    .q-table { font-size: 12px; }
+    .q-table td, .q-table th { padding: 8px 10px; }
+    /* Agencies grid */
+    .agencies-grid { grid-template-columns: 1fr 1fr; }
+    /* Filter tabs wrap */
+    .filter-tabs { flex-wrap: wrap; }
+    /* Form */
+    .form-input, .form-select, .form-textarea { font-size: 16px; } /* prevent iOS zoom */
+    /* Leaderboard */
+    .lb-school { display: none; }
+    /* Deadlines */
+    .deadline-item { flex-wrap: wrap; gap: 6px; }
+  }
+  @media (max-width: 400px) {
     .stats-grid { grid-template-columns: 1fr 1fr; }
+    .quick-actions { grid-template-columns: 1fr 1fr; }
+    .agencies-grid { grid-template-columns: 1fr 1fr; }
   }
 
   /* ── SCROLLBAR ── */
@@ -882,7 +906,7 @@
           </div>
           <div class="stat-card">
             <div class="stat-label">Active Agencies</div>
-            <div class="stat-value blue" id="stat-agencies">11</div>
+            <div class="stat-value blue" id="stat-agencies">⏳</div>
             <div class="stat-sub">Registered</div>
           </div>
           <div class="stat-card">
@@ -1237,35 +1261,42 @@
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbww1yKs60nUWmgsmwthFuzJW8438EO25n7uGaA0_dkk2YkW5xiZ9le494Mr8cSHDiYP/exec';
 
 // ════════════════════════════════════════════════════════
-// API — Google Apps Script communication
-// DO NOT add mode:'cors' — Apps Script handles CORS
+// API — Google CMG Server communication
+// DO NOT add mode:'cors' — CMG Server handles CORS
 // via redirect. Let the browser follow naturally.
 // ════════════════════════════════════════════════════════
 async function api(params) {
   try {
-    const url = SCRIPT_URL + '?' + new URLSearchParams(params).toString();
-    const res  = await fetch(url);          // no mode — browser follows GAS redirect
+    const url        = SCRIPT_URL + '?' + new URLSearchParams(params).toString();
+    const controller = new AbortController();
+    const timer      = setTimeout(() => controller.abort(), 12000);
+    const res        = await fetch(url, { signal: controller.signal });
+    clearTimeout(timer);
     const text = await res.text();
     try { return JSON.parse(text); }
-    catch(e) { return { status: 'error', error: 'Bad JSON: ' + text.slice(0,100) }; }
+    catch(e) { return { status: 'error', error: 'Bad response from CMG Server' }; }
   } catch(e) {
-    console.warn('API GET error:', e.message);
+    if (e.name === 'AbortError') return { status: 'error', error: 'CMG Server timeout — check your connection' };
     return { status: 'error', error: e.message };
   }
 }
 
 async function apiPost(body) {
   try {
-    const res  = await fetch(SCRIPT_URL, {
+    const controller = new AbortController();
+    const timer      = setTimeout(() => controller.abort(), 15000);
+    const res        = await fetch(SCRIPT_URL, {
       method:  'POST',
-      headers: { 'Content-Type': 'text/plain' }, // GAS needs text/plain for doPost
-      body:    JSON.stringify(body)
+      headers: { 'Content-Type': 'text/plain' },
+      body:    JSON.stringify(body),
+      signal:  controller.signal
     });
+    clearTimeout(timer);
     const text = await res.text();
     try { return JSON.parse(text); }
-    catch(e) { return { status: 'ok' }; }        // no-cors POST returns opaque — assume ok
+    catch(e) { return { status: 'ok' }; }
   } catch(e) {
-    console.warn('API POST error:', e.message);
+    if (e.name === 'AbortError') return { status: 'error', error: 'CMG Server timeout — check your connection' };
     return { status: 'error', error: e.message };
   }
 }
@@ -1400,7 +1431,7 @@ function doLogout() {
 // ════════════════════════════════════════════════════════
 // SUBMIT QUESTION
 // Action: submitQuestion (POST)
-// Fields match Apps Script exactly
+// Fields match CMG Server exactly
 // ════════════════════════════════════════════════════════
 async function submitQuestion() {
   const question     = document.getElementById('q-text').value.trim();
@@ -1430,10 +1461,10 @@ async function submitQuestion() {
     optionB:       optionB,
     optionC:       optionC,
     optionD:       optionD,
-    correctAnswer: correctAnswer,   // matches Apps Script field name exactly
+    correctAnswer: correctAnswer,   // matches CMG Server field name exactly
     explanation:   explanation,
     notes:         notes,
-    submittedBy:   currentUser.name // Apps Script uses submittedBy
+    submittedBy:   currentUser.name // CMG Server uses submittedBy
   });
 
   if (btn) { btn.textContent = '📤 Submit for Review'; btn.disabled = false; }
@@ -1480,11 +1511,11 @@ function saveDraft() {
 // ════════════════════════════════════════════════════════
 async function loadMyQuestions() {
   const body = document.getElementById('my-q-body');
-  body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-dim);">⏳ Loading from Google Sheets…</td></tr>';
+  body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-dim);"><span style="color:var(--gold)">⏳</span> Loading from CMG Server…</td></tr>';
 
   const data = await api({
     action: 'getMyQuestions',
-    agency: currentUser.name   // Apps Script matches on submittedBy
+    agency: currentUser.name   // CMG Server matches on submittedBy
   });
 
   _allMyQ = (data && data.questions) || [];
@@ -1514,11 +1545,16 @@ function renderMyQ(filter) {
 // ════════════════════════════════════════════════════════
 async function loadReviewQuestions() {
   const body = document.getElementById('review-body');
-  body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-dim);">⏳ Loading…</td></tr>';
+  body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-dim);">⏳ Connecting to CMG Server…</td></tr>';
 
   const data = await api({ action: 'getAllQuestions' });
-  _allReviewQ = (data && data.questions) || [];
 
+  if (data && data.status === 'error') {
+    body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#e06060;padding:20px;">⚠️ ' + (data.error || 'Could not connect to CMG Server') + '</td></tr>';
+    return;
+  }
+
+  _allReviewQ = (data && data.questions) || [];
   const pending  = _allReviewQ.filter(q => (q.status||'Pending') === 'Pending').length;
   const approved = _allReviewQ.filter(q => q.status === 'Approved').length;
   document.getElementById('review-badge').textContent = pending || '';
@@ -1555,7 +1591,7 @@ function renderReview(filter) {
   `).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:24px;">No questions found.</td></tr>';
 }
 
-// reviewQuestion — POST with rowIndex + status (matches Apps Script exactly)
+// reviewQuestion — POST with rowIndex + status (matches CMG Server exactly)
 async function approveQ(rowIndex) {
   showToast('⏳ Approving…');
   const res = await apiPost({
@@ -1654,16 +1690,16 @@ async function renderDashboard() {
       bcEl.querySelector('.bc-date').textContent = 'CMG · ' + new Date(latest.ts).toLocaleDateString();
       bcEl.querySelector('.bc-msg').textContent  = latest.msg || '';
     }
-  } catch(e) { console.warn('Notification load error:', e); }
+  } catch(e) { console.log('Notification load error:', e); }
 }
 
 // ════════════════════════════════════════════════════════
 // AGENCIES — built from getAllQuestions data
-// (No getAgencyProgress action exists in Apps Script)
+// (No getAgencyProgress action exists in CMG Server)
 // ════════════════════════════════════════════════════════
 async function renderAgencies() {
   const grid = document.getElementById('agencies-grid');
-  grid.innerHTML = '<div style="color:var(--text-dim);padding:20px;">⏳ Loading…</div>';
+  grid.innerHTML = '<div style="color:var(--text-dim);padding:20px;">⏳ Connecting to CMG Server…</div>';
 
   const data  = await api({ action: 'getAllQuestions' });
   const questions = (data && data.questions) || [];
@@ -1703,7 +1739,7 @@ async function renderAgencies() {
 // ════════════════════════════════════════════════════════
 async function renderProgress() {
   const el = document.getElementById('progress-list');
-  el.innerHTML = '<div style="color:var(--text-dim);padding:16px;">⏳ Loading…</div>';
+  el.innerHTML = '<div style="color:var(--text-dim);padding:16px;">⏳ Connecting to CMG Server…</div>';
 
   const data      = await api({ action: 'getAllQuestions' });
   const questions = (data && data.questions) || [];
@@ -1750,15 +1786,18 @@ async function renderProgress() {
 
 // ════════════════════════════════════════════════════════
 // LEADERBOARD — action: (no action param — raw GET)
-// Apps Script returns raw array from Form Responses 1
+// CMG Server returns raw array from Form Responses 1
 // ════════════════════════════════════════════════════════
 async function renderLeaderboard() {
   const el = document.getElementById('leaderboard-list');
-  el.innerHTML = '<div style="color:var(--text-dim);padding:16px;">⏳ Loading leaderboard…</div>';
+  el.innerHTML = '<div style="color:var(--text-dim);padding:16px;">⏳ Connecting to CMG Server…</div>';
 
   try {
-    const res  = await fetch(SCRIPT_URL);
-    const rows = await res.json(); // returns raw array
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
+    const res   = await fetch(SCRIPT_URL, { signal: controller.signal });
+    clearTimeout(timer);
+    const rows = await res.json(); // returns raw leaderboard array
     if (!Array.isArray(rows) || rows.length === 0) {
       el.innerHTML = '<div style="color:var(--text-dim);padding:16px;">No leaderboard data yet.</div>';
       return;
@@ -1797,7 +1836,7 @@ async function renderLeaderboard() {
 // ANALYTICS — built from getModuleStats + leaderboard data
 // ════════════════════════════════════════════════════════
 async function renderAnalytics() {
-  document.getElementById('analytics-bars').innerHTML = '<div style="color:var(--text-dim);">⏳ Loading…</div>';
+  document.getElementById('analytics-bars').innerHTML = '<div style="color:var(--text-dim);">⏳ Connecting to CMG Server…</div>';
   document.getElementById('region-bars').innerHTML    = '';
 
   try {
@@ -1863,7 +1902,7 @@ async function renderAnalytics() {
 }
 
 // ════════════════════════════════════════════════════════
-// DEADLINES — stored in sessionStorage (no Apps Script action)
+// DEADLINES — stored in sessionStorage (no CMG Server action)
 // ════════════════════════════════════════════════════════
 function renderDeadlines() {
   const el   = document.getElementById('deadlines-list');
@@ -1897,7 +1936,7 @@ function setDeadline() {
 // ════════════════════════════════════════════════════════
 async function renderBroadcastHistory() {
   const el = document.getElementById('broadcast-history');
-  el.innerHTML = '<div style="color:var(--text-dim);padding:12px 0;">⏳ Loading…</div>';
+  el.innerHTML = '<div style="color:var(--text-dim);padding:12px 0;">⏳ Connecting to CMG Server…</div>';
 
   const data   = await api({ action: 'getNotifications', agency: 'Admin' });
   const notifs = (data && data.notifications) || [];
