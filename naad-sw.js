@@ -1,75 +1,83 @@
-// NAAD Content Portal — Service Worker v2
+// NAAD Content Portal — Service Worker v3
 // Cadet Media Ghana 2026
 
-const CACHE_NAME  = 'naad-portal-v2';
-const ASSETS      = ['./naad-portal.html'];
+const CACHE_NAME = 'naad-portal-v3';
+const BASE       = '/naad-portal/';
+const ASSETS     = [
+  BASE + 'naad-portal.html',
+  BASE + 'naad-sw.js',
+];
 
 // ── INSTALL ──
 self.addEventListener('install', event => {
-  console.log('[NAAD SW] Installing v2…');
+  console.log('[NAAD SW v3] Installing…');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(ASSETS))
       .then(() => {
-        // Don't call skipWaiting here — wait for user to confirm update
-        console.log('[NAAD SW] Cached successfully');
+        console.log('[NAAD SW v3] Cached');
+        // Don't skipWaiting — wait for user to approve update
       })
   );
 });
 
-// ── ACTIVATE — clean old caches ──
+// ── ACTIVATE — remove old caches ──
 self.addEventListener('activate', event => {
-  console.log('[NAAD SW] Activating…');
+  console.log('[NAAD SW v3] Activating…');
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
+    caches.keys()
+      .then(keys => Promise.all(
         keys.filter(k => k !== CACHE_NAME).map(k => {
-          console.log('[NAAD SW] Removing old cache:', k);
+          console.log('[NAAD SW v3] Removing old cache:', k);
           return caches.delete(k);
         })
-      )
-    ).then(() => self.clients.claim())
+      ))
+      .then(() => self.clients.claim())
   );
 });
 
-// ── FETCH — cache first, fallback to network ──
+// ── FETCH — cache-first for app files, network-first for API ──
 self.addEventListener('fetch', event => {
-  // Only cache same-origin requests (not Google Scripts API calls)
   const url = new URL(event.request.url);
-  if (url.hostname !== self.location.hostname) return;
 
+  // Never cache API calls to Google / CMG Server
+  if (url.hostname.includes('google') || url.hostname.includes('script')) return;
+
+  // Network-first for HTML (always get fresh app)
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then(res => {
+          if (res && res.status === 200) {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
+          }
+          return res;
+        })
+        .catch(() => caches.match(BASE + 'naad-portal.html'))
+    );
+    return;
+  }
+
+  // Cache-first for everything else
   event.respondWith(
-    caches.match(event.request)
-      .then(cached => {
-        if (cached) {
-          // Return cached + update in background
-          const networkFetch = fetch(event.request)
-            .then(res => {
-              if (res && res.status === 200) {
-                const clone = res.clone();
-                caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
-              }
-              return res;
-            }).catch(() => {});
-          return cached;
+    caches.match(event.request).then(cached => {
+      if (cached) return cached;
+      return fetch(event.request).then(res => {
+        if (res && res.status === 200 && event.request.method === 'GET') {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
         }
-        return fetch(event.request)
-          .then(res => {
-            if (res && res.status === 200 && event.request.method === 'GET') {
-              const clone = res.clone();
-              caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
-            }
-            return res;
-          })
-          .catch(() => caches.match('./naad-portal.html'));
-      })
+        return res;
+      });
+    })
   );
 });
 
-// ── MESSAGE — handle SKIP_WAITING for update flow ──
+// ── MESSAGE — SKIP_WAITING for update ──
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
-    console.log('[NAAD SW] Skipping wait — updating now');
+    console.log('[NAAD SW v3] Skipping wait — updating');
     self.skipWaiting();
   }
 });
