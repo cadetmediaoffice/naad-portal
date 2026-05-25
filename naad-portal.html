@@ -239,23 +239,139 @@
     .auth-right { width: 100%; border-left: none; border-top: 1px solid rgba(232,160,32,0.2); padding: 28px 24px; }
   }
 
-  /* ── NOTIFICATION TOAST ── */
-  #notif-toast {
+  /* ── NOTIFICATION SYSTEM ── */
+  /* Stack container — holds multiple toasts */
+  #notif-stack {
     position: fixed; top: 20px; right: 20px; z-index: 9999;
-    background: linear-gradient(135deg, #162540, #0d1a2e);
+    display: flex; flex-direction: column; gap: 10px;
+    pointer-events: none; width: 340px;
+  }
+  /* Individual toast */
+  .notif-toast-item {
+    background: linear-gradient(135deg, #1a2f50, #0d1a2e);
     border: 1px solid rgba(232,160,32,0.4);
-    border-radius: 12px; padding: 14px 18px;
-    display: none; align-items: center; gap: 12px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-    min-width: 260px; max-width: 340px;
-    animation: slideInRight 0.35s ease;
+    border-radius: 14px; padding: 0;
+    display: flex; flex-direction: column;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    overflow: hidden; pointer-events: all;
+    animation: slideInRight 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    transition: opacity 0.3s ease, transform 0.3s ease, margin 0.3s ease;
+  }
+  .notif-toast-item.dismissing {
+    opacity: 0; transform: translateX(50px);
+    margin-bottom: -80px; pointer-events: none;
   }
   @keyframes slideInRight {
-    from { opacity: 0; transform: translateX(40px); }
+    from { opacity: 0; transform: translateX(60px); }
     to   { opacity: 1; transform: translateX(0); }
   }
-  .notif-icon { font-size: 24px; flex-shrink: 0; }
-  .notif-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: #e8a020; }
+  /* Progress bar at top of toast */
+  .notif-progress {
+    height: 3px; width: 100%;
+    background: rgba(232,160,32,0.15);
+  }
+  .notif-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #e8a020, #f5c842);
+    width: 100%;
+    transition: width linear;
+  }
+  /* Toast body */
+  .notif-body {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 14px 16px 14px 14px;
+  }
+  .notif-icon-wrap {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .notif-icon-wrap.approved { background: rgba(29,158,117,0.2); }
+  .notif-icon-wrap.rejected { background: rgba(201,64,64,0.2); }
+  .notif-icon-wrap.broadcast { background: rgba(42,111,184,0.2); }
+  .notif-icon-wrap.info { background: rgba(232,160,32,0.15); }
+  .notif-text { flex: 1; min-width: 0; }
+  .notif-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: #e8a020; margin-bottom: 3px; }
+  .notif-msg   { font-size: 12px; color: rgba(240,234,220,0.7); line-height: 1.5; }
+  .notif-time  { font-size: 10px; color: rgba(240,234,220,0.35); margin-top: 5px; }
+  .notif-close {
+    background: none; border: none; color: rgba(240,234,220,0.3);
+    font-size: 16px; cursor: pointer; padding: 4px; line-height: 1;
+    flex-shrink: 0; transition: color 0.15s;
+  }
+  .notif-close:hover { color: rgba(240,234,220,0.8); }
+  /* Source label */
+  .notif-source {
+    font-size: 10px; color: rgba(240,234,220,0.25);
+    padding: 0 16px 10px; letter-spacing: 0.05em;
+  }
+  /* Desktop notification panel dropdown */
+  #notif-panel {
+    position: fixed; top: 56px; right: 12px; z-index: 8000;
+    width: 360px; max-height: 520px;
+    background: var(--navy-mid);
+    border: 1px solid var(--border-strong);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    display: none; flex-direction: column;
+    overflow: hidden;
+    animation: dropDown 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  #notif-panel.open { display: flex; }
+  @keyframes dropDown {
+    from { opacity: 0; transform: translateY(-12px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .notif-panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .notif-panel-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; }
+  .notif-panel-actions { display: flex; gap: 8px; }
+  .notif-panel-btn {
+    background: none; border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text-dim); font-size: 11px; padding: 4px 10px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .notif-panel-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .notif-panel-list { overflow-y: auto; flex: 1; padding: 8px 0; }
+  .notif-panel-empty {
+    text-align: center; color: var(--text-dim);
+    padding: 40px 20px; font-size: 13px;
+  }
+  .notif-panel-item {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 12px 18px; cursor: pointer;
+    transition: background 0.15s; position: relative;
+  }
+  .notif-panel-item:hover { background: rgba(232,160,32,0.06); }
+  .notif-panel-item.unread { background: rgba(232,160,32,0.04); }
+  .notif-panel-item.unread::before {
+    content: ''; position: absolute; left: 6px; top: 50%; transform: translateY(-50%);
+    width: 6px; height: 6px; border-radius: 50%; background: var(--gold);
+  }
+  .npi-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+  .npi-body { flex: 1; min-width: 0; }
+  .npi-title { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; margin-bottom: 2px; }
+  .npi-msg { font-size: 11px; color: var(--text-dim); line-height: 1.5;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .npi-time { font-size: 10px; color: rgba(240,234,220,0.3); margin-top: 3px; }
+  /* Topbar bell button with badge */
+  #topbar-notif-btn { position: relative; }
+  #topbar-notif-count {
+    position: absolute; top: -4px; right: -4px;
+    background: var(--gold); color: var(--navy);
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 9px;
+    min-width: 16px; height: 16px; border-radius: 99px;
+    display: none; align-items: center; justify-content: center;
+    padding: 0 3px; border: 1.5px solid var(--navy-mid);
+    animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes popIn {
+    from { transform: scale(0); }
+    to   { transform: scale(1); }
+  }
   .notif-msg   { font-size: 12px; color: rgba(240,234,220,0.7); margin-top: 2px; }
 
   /* ── APP SHELL ── */
@@ -815,12 +931,20 @@
   </div>
 </div>
 
-<!-- NOTIFICATION TOAST -->
-<div id="notif-toast">
-  <div class="notif-icon" id="notif-icon">🔔</div>
-  <div>
-    <div class="notif-title" id="notif-title">Notification</div>
-    <div class="notif-msg"   id="notif-msg"></div>
+<!-- NOTIFICATION STACK (multiple toasts) -->
+<div id="notif-stack"></div>
+
+<!-- NOTIFICATION PANEL (dropdown from topbar bell) -->
+<div id="notif-panel">
+  <div class="notif-panel-header">
+    <div class="notif-panel-title">🔔 Notifications</div>
+    <div class="notif-panel-actions">
+      <button class="notif-panel-btn" onclick="markAllRead()">✓ All Read</button>
+      <button class="notif-panel-btn" onclick="toggleNotifPanel()">✕</button>
+    </div>
+  </div>
+  <div class="notif-panel-list" id="notif-panel-list">
+    <div class="notif-panel-empty">No notifications yet</div>
   </div>
 </div>
 
@@ -909,7 +1033,10 @@
     <div id="topbar">
       <div class="topbar-title" id="topbar-title">Dashboard</div>
       <div class="topbar-actions">
-        <button class="icon-btn notif-dot" title="Notifications" onclick="navigate('notifications')" style="position:relative;" id="topbar-notif-btn">🔔<span id="topbar-notif-badge" style="position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:var(--gold);display:none;"></span></button>
+        <button class="icon-btn" title="Notifications" onclick="toggleNotifPanel()" id="topbar-notif-btn">
+          🔔
+          <span id="topbar-notif-count">0</span>
+        </button>
         <button class="icon-btn" title="Refresh" onclick="showToast('Data refreshed')">🔄</button>
       </div>
     </div>
@@ -1460,35 +1587,65 @@ function playLoginSound() {
 }
 
 // ════════════════════════════════════════════════════════
-// NOTIFICATION SYSTEM
+// NOTIFICATION SYSTEM — Full desktop + mobile
 // ════════════════════════════════════════════════════════
 let _notifSeen    = new Set(JSON.parse(localStorage.getItem('naad_notif_seen') || '[]'));
 let _notifPolling = null;
 let _allNotifs    = [];
+let _panelOpen    = false;
 
-function showNotif(icon, title, msg, duration) {
-  const toast = document.getElementById('notif-toast');
-  document.getElementById('notif-icon').textContent  = icon;
-  document.getElementById('notif-title').textContent = title;
-  document.getElementById('notif-msg').textContent   = msg;
-  toast.style.display    = 'flex';
-  toast.style.opacity    = '1';
-  toast.style.transform  = 'translateX(0)';
-  toast.style.transition = '';
-  clearTimeout(window._notifTimer);
-  window._notifTimer = setTimeout(() => dismissNotif(), duration || 5000);
+// ── Show a stacked toast (desktop style) ──
+function showNotif(icon, title, msg, type, duration) {
+  const stack   = document.getElementById('notif-stack');
+  if (!stack) return;
+  const dur     = duration || 6000;
+  const cls     = type === 'type-approved' ? 'approved' :
+                  type === 'type-rejected' ? 'rejected' :
+                  type === 'type-broadcast'? 'broadcast' : 'info';
+
+  const item = document.createElement('div');
+  item.className = 'notif-toast-item';
+  item.innerHTML = `
+    <div class="notif-progress">
+      <div class="notif-progress-fill" id="npf-${Date.now()}"></div>
+    </div>
+    <div class="notif-body">
+      <div class="notif-icon-wrap ${cls}">${icon}</div>
+      <div class="notif-text">
+        <div class="notif-title">${title}</div>
+        <div class="notif-msg">${msg}</div>
+        <div class="notif-time">${new Date().toLocaleTimeString()}</div>
+      </div>
+      <button class="notif-close" onclick="dismissToast(this.closest('.notif-toast-item'))">✕</button>
+    </div>
+    <div class="notif-source">CMG Server · NAAD Safety Edition</div>
+  `;
+  stack.appendChild(item);
+
+  // Animate progress bar countdown
+  const fill = item.querySelector('.notif-progress-fill');
+  fill.style.transition = `width ${dur}ms linear`;
+  setTimeout(() => { fill.style.width = '0%'; }, 50);
+
+  // Auto-dismiss
+  const timer = setTimeout(() => dismissToast(item), dur);
+  item._timer = timer;
+
+  // Max 4 toasts at once
+  const toasts = stack.querySelectorAll('.notif-toast-item');
+  if (toasts.length > 4) dismissToast(toasts[0]);
+}
+
+function dismissToast(item) {
+  if (!item || item.classList.contains('dismissing')) return;
+  clearTimeout(item._timer);
+  item.classList.add('dismissing');
+  setTimeout(() => { if (item.parentNode) item.parentNode.removeChild(item); }, 350);
 }
 
 function dismissNotif() {
-  const toast = document.getElementById('notif-toast');
-  toast.style.opacity   = '0';
-  toast.style.transform = 'translateX(40px)';
-  toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-  setTimeout(() => {
-    toast.style.display = 'none';
-    toast.style.opacity = '';
-    toast.style.transform = '';
-  }, 320);
+  // legacy compat — dismiss all toasts
+  document.querySelectorAll('.notif-toast-item').forEach(dismissToast);
 }
 
 function playNotifSound(type) {
@@ -1512,27 +1669,43 @@ function playNotifSound(type) {
 }
 
 function updateNotifBadge(count) {
+  // Sidebar badge
   const badge = document.getElementById('notif-badge');
-  const topBtn = document.querySelector('#topbar .notif-dot');
-  if (!badge) return;
-  if (count > 0) {
-    badge.textContent    = count;
-    badge.style.display  = 'inline-flex';
-    badge.classList.add('pulse');
-    setTimeout(() => badge.classList.remove('pulse'), 2000);
-    if (topBtn) topBtn.setAttribute('data-count', count);
-    const tdot = document.getElementById('topbar-notif-badge');
-    if (tdot) tdot.style.display = count > 0 ? 'block' : 'none';
-    // Browser notification (if permitted)
-    if (Notification.permission === 'granted') {
-      new Notification('NAAD Portal — ' + count + ' new notification' + (count>1?'s':''), {
-        body: 'Tap to view in the NAAD Content Portal',
-        icon: document.querySelector('link[rel="icon"]')?.href || ''
-      });
+  if (badge) {
+    if (count > 0) {
+      badge.textContent   = count > 99 ? '99+' : count;
+      badge.style.display = 'inline-flex';
+      badge.classList.remove('pulse');
+      void badge.offsetWidth;
+      badge.classList.add('pulse');
+      setTimeout(() => badge.classList.remove('pulse'), 2000);
+    } else {
+      badge.style.display = 'none';
     }
-  } else {
-    badge.style.display = 'none';
   }
+  // Topbar count badge
+  const topCount = document.getElementById('topbar-notif-count');
+  if (topCount) {
+    if (count > 0) {
+      topCount.textContent   = count > 99 ? '99+' : count;
+      topCount.style.display = 'flex';
+    } else {
+      topCount.style.display = 'none';
+    }
+  }
+  // Browser OS notification
+  if (count > 0 && Notification.permission === 'granted') {
+    try {
+      new Notification('NAAD Portal — ' + count + ' unread notification' + (count > 1 ? 's' : ''), {
+        body: 'Tap to open the NAAD Content Portal',
+        icon: document.querySelector('link[rel="icon"]')?.href || '',
+        tag: 'naad-badge',
+        silent: false
+      });
+    } catch(e) {}
+  }
+  // Update panel if open
+  if (_panelOpen) renderNotifPanel();
 }
 
 async function loadNotifications(silent) {
@@ -1574,7 +1747,19 @@ async function loadNotifications(silent) {
       const soundType = newest.type === 'type-approved' ? 'approved' :
                         newest.type === 'type-rejected'  ? 'rejected' : 'info';
       playNotifSound(soundType);
-      showNotif(icon, newest.title || 'New Notification', newest.msg || '', 5000);
+      showNotif(icon, newest.title || 'New Notification', newest.msg || '', newest.type, 6000);
+      // Browser OS notification
+      if (Notification.permission === 'granted') {
+        try {
+          new Notification('NAAD Portal — ' + (newest.title || 'New Notification'), {
+            body: newest.msg || '',
+            icon: document.querySelector('link[rel="icon"]')?.href || '',
+            badge: document.querySelector('link[rel="icon"]')?.href || '',
+            tag: 'naad-notif-' + newest.id,
+            renotify: true
+          });
+        } catch(e) {}
+      }
     }
   }
 
@@ -1608,12 +1793,66 @@ function renderNotifPage() {
   }).join('');
 }
 
+// ── Notification panel (dropdown) ──
+function toggleNotifPanel() {
+  const panel = document.getElementById('notif-panel');
+  _panelOpen  = !_panelOpen;
+  if (_panelOpen) {
+    panel.classList.add('open');
+    renderNotifPanel();
+    // Close when clicking outside
+    setTimeout(() => {
+      document.addEventListener('click', closePanelOutside);
+    }, 10);
+  } else {
+    panel.classList.remove('open');
+    document.removeEventListener('click', closePanelOutside);
+  }
+}
+
+function closePanelOutside(e) {
+  const panel = document.getElementById('notif-panel');
+  const btn   = document.getElementById('topbar-notif-btn');
+  if (!panel.contains(e.target) && !btn.contains(e.target)) {
+    panel.classList.remove('open');
+    _panelOpen = false;
+    document.removeEventListener('click', closePanelOutside);
+  }
+}
+
+function renderNotifPanel() {
+  const list = document.getElementById('notif-panel-list');
+  if (!list) return;
+  if (!_allNotifs.length) {
+    list.innerHTML = '<div class="notif-panel-empty">🔔 No notifications yet</div>';
+    return;
+  }
+  list.innerHTML = _allNotifs.map(n => {
+    const unread = !_notifSeen.has(String(n.id));
+    const icon   = n.type === 'type-approved'  ? '✅' :
+                   n.type === 'type-rejected'   ? '❌' :
+                   n.type === 'type-broadcast'  ? '📢' : '🔔';
+    const time   = n.ts ? new Date(n.ts).toLocaleString('en-GB', {
+      day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'
+    }) : '';
+    return `<div class="notif-panel-item ${unread?'unread':''}" onclick="markRead('${n.id}')">
+      <div class="npi-icon">${icon}</div>
+      <div class="npi-body">
+        <div class="npi-title">${n.title||''}</div>
+        <div class="npi-msg">${n.msg||''}</div>
+        <div class="npi-time">${time}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function markRead(id) {
   _notifSeen.add(String(id));
   localStorage.setItem('naad_notif_seen', JSON.stringify([..._notifSeen]));
   const unread = _allNotifs.filter(n => !_notifSeen.has(String(n.id))).length;
   updateNotifBadge(unread);
   renderNotifPage();
+  renderNotifPanel();
 }
 
 function markAllRead() {
@@ -1621,6 +1860,7 @@ function markAllRead() {
   localStorage.setItem('naad_notif_seen', JSON.stringify([..._notifSeen]));
   updateNotifBadge(0);
   renderNotifPage();
+  renderNotifPanel();
   showToast('✓ All notifications marked as read');
 }
 
