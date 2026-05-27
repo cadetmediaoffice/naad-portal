@@ -1,7 +1,7 @@
 // NAAD Content Portal — Service Worker v3
 // Cadet Media Ghana 2026
 
-const CACHE_NAME = 'naad-portal-v3';
+const CACHE_NAME = 'naad-portal-v4';
 const BASE       = '/naad-portal/';
 const ASSETS     = [
   BASE + 'naad-portal.html',
