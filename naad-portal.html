@@ -854,6 +854,174 @@
   }
   .nav-badge.pulse { animation: pulse 0.6s ease 3; }
 
+
+  /* ── EDIT MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 5000;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+    display: none; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--navy-mid); border: 1px solid var(--border-strong);
+    border-radius: 16px; width: 100%; max-width: 560px;
+    max-height: 90vh; overflow-y: auto;
+    display: flex; flex-direction: column;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+    animation: modalPop 0.25s ease;
+  }
+  @keyframes modalPop {
+    from { opacity:0; transform:scale(0.95) translateY(10px); }
+    to   { opacity:1; transform:scale(1) translateY(0); }
+  }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 22px; border-bottom: 1px solid var(--border);
+    font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .modal-close {
+    background: none; border: none; color: var(--text-dim);
+    font-size: 20px; cursor: pointer; padding: 4px; line-height:1;
+    transition: color 0.15s;
+  }
+  .modal-close:hover { color: var(--danger); }
+  .modal-body { padding: 22px; display: flex; flex-direction: column; gap: 16px; }
+  .modal-footer {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    padding: 16px 22px; border-top: 1px solid var(--border); flex-shrink: 0;
+  }
+  /* Image upload */
+  .img-upload-area {
+    border: 2px dashed var(--border-strong); border-radius: var(--radius);
+    padding: 20px; text-align: center; cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+  }
+  .img-upload-area:hover { border-color: var(--gold); background: var(--gold-glow); }
+  .img-upload-area input[type=file] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
+  }
+  .img-preview {
+    max-width: 100%; max-height: 160px; border-radius: var(--radius-sm);
+    display: none; margin-top: 10px;
+  }
+  .img-preview.show { display: block; }
+
+  /* ── MESSAGING ── */
+  .msg-thread {
+    display: flex; flex-direction: column; gap: 12px;
+    max-height: 320px; overflow-y: auto; padding: 4px 0;
+  }
+  .msg-bubble {
+    max-width: 80%; padding: 10px 14px; border-radius: 12px;
+    font-size: 13px; line-height: 1.6;
+  }
+  .msg-bubble.sent {
+    align-self: flex-end;
+    background: rgba(232,160,32,0.15); border: 1px solid var(--border-strong);
+    border-bottom-right-radius: 4px;
+  }
+  .msg-bubble.received {
+    align-self: flex-start;
+    background: rgba(30,51,88,0.8); border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+  }
+  .msg-sender { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; color: var(--gold); margin-bottom: 4px; }
+  .msg-time   { font-size: 10px; color: var(--text-dim); margin-top: 4px; text-align: right; }
+  .msg-compose {
+    display: flex; gap: 10px; align-items: flex-end;
+    padding-top: 12px; border-top: 1px solid var(--border);
+  }
+  .msg-compose textarea {
+    flex: 1; min-height: 60px; resize: none;
+    background: var(--navy); border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm); color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 13px;
+    padding: 10px 12px; outline: none;
+    transition: border-color 0.2s;
+  }
+  .msg-compose textarea:focus { border-color: var(--gold); }
+  .msg-send-btn {
+    padding: 10px 16px; background: var(--gold); color: var(--navy);
+    border: none; border-radius: var(--radius-sm);
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 13px;
+    cursor: pointer; transition: opacity 0.2s; white-space: nowrap;
+  }
+  .msg-send-btn:hover { opacity: 0.88; }
+
+
+  /* ── ONLINE PRESENCE ── */
+  .online-strip {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 20px;
+  }
+  .online-chip {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(29,158,117,0.1);
+    border: 1px solid rgba(29,158,117,0.35);
+    border-radius: 99px; padding: 6px 14px 6px 10px;
+    font-size: 12px; font-weight: 600;
+    animation: chipIn 0.3s ease;
+  }
+  @keyframes chipIn {
+    from { opacity:0; transform:scale(0.85); }
+    to   { opacity:1; transform:scale(1); }
+  }
+  .online-chip .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #1d9e75;
+    box-shadow: 0 0 0 2px rgba(29,158,117,0.3);
+    animation: pulse-dot 2s infinite;
+    flex-shrink: 0;
+  }
+  @keyframes pulse-dot {
+    0%,100% { box-shadow: 0 0 0 2px rgba(29,158,117,0.3); }
+    50%      { box-shadow: 0 0 0 5px rgba(29,158,117,0.1); }
+  }
+  .online-chip .chip-label { color: #1d9e75; }
+  .online-chip .chip-time  { font-size: 10px; color: var(--text-dim); margin-left: 4px; }
+
+  /* Offline chip */
+  .offline-chip {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 99px; padding: 6px 14px 6px 10px;
+    font-size: 12px; color: var(--text-dim);
+  }
+  .offline-chip .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.15); flex-shrink: 0;
+  }
+
+  /* Agency card with online indicator */
+  .agency-card { position: relative; }
+  .agency-online-badge {
+    position: absolute; top: 10px; right: 10px;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #1d9e75;
+    box-shadow: 0 0 0 3px rgba(29,158,117,0.2);
+    animation: pulse-dot 2s infinite;
+  }
+  .agency-offline-badge {
+    position: absolute; top: 10px; right: 10px;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+  }
+  .agency-last-seen { font-size: 10px; color: var(--text-dim); margin-top: 4px; }
+
+  /* Online count in topbar */
+  #online-count-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(29,158,117,0.12);
+    border: 1px solid rgba(29,158,117,0.3);
+    border-radius: 99px; padding: 4px 10px;
+    font-size: 11px; color: #1d9e75; font-weight: 600;
+  }
+  #online-count-badge .dot { width:6px;height:6px;border-radius:50%;background:#1d9e75;animation:pulse-dot 2s infinite; }
+
   /* ── SCROLLBAR ── */
   ::-webkit-scrollbar { width: 5px; }
   ::-webkit-scrollbar-track { background: var(--navy); }
@@ -952,7 +1120,179 @@
   </div>
 </div>
 
+
+<!-- EDIT QUESTION MODAL -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      ✏️ Edit Question
+      <button class="modal-close" onclick="closeEditModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-row-index">
+      <div class="form-group">
+        <label class="form-label">Module</label>
+        <select class="form-select" id="edit-module">
+          <option>Fire Safety</option><option>Road Safety</option>
+          <option>Disaster Management</option><option>Emergency Response</option>
+          <option>Border Safety</option><option>Environmental Safety</option>
+          <option>Tourism Safety</option><option>Drug Awareness</option>
+          <option>General Safety</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Level</label>
+        <select class="form-select" id="edit-level">
+          <option>Level 1 — Easy</option>
+          <option>Level 2 — Medium</option>
+          <option>Level 3 — Hard</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Question</label>
+        <textarea class="form-textarea" id="edit-question" style="min-height:80px;"></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group"><label class="form-label">Option A</label><input class="form-input" id="edit-a"></div>
+        <div class="form-group"><label class="form-label">Option B</label><input class="form-input" id="edit-b"></div>
+        <div class="form-group"><label class="form-label">Option C</label><input class="form-input" id="edit-c"></div>
+        <div class="form-group"><label class="form-label">Option D</label><input class="form-input" id="edit-d"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Correct Answer</label>
+        <div style="display:flex;gap:8px;" id="edit-correct-row">
+          <button class="correct-opt" onclick="setEditCorrect(this,'A')">A</button>
+          <button class="correct-opt" onclick="setEditCorrect(this,'B')">B</button>
+          <button class="correct-opt" onclick="setEditCorrect(this,'C')">C</button>
+          <button class="correct-opt" onclick="setEditCorrect(this,'D')">D</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Explanation</label>
+        <textarea class="form-textarea" id="edit-explanation" style="min-height:70px;"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">🖼️ Question Image (optional)</label>
+        <div class="img-upload-area" id="edit-img-area">
+          <input type="file" accept="image/*" id="edit-img-input" onchange="previewEditImage(this)">
+          <div id="edit-img-placeholder">📷 Click or drag image here<br><small style="color:var(--text-dim)">JPG · PNG · SVG · max 2MB</small></div>
+          <img class="img-preview" id="edit-img-preview" src="" alt="">
+          <button id="edit-img-remove" style="display:none;margin-top:8px;" class="ghost-btn" onclick="removeEditImage(event)">✕ Remove Image</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="submit-btn" onclick="saveEditQuestion()">💾 Save Changes</button>
+      <button class="ghost-btn" style="color:var(--danger);border-color:var(--danger);" onclick="deleteQuestion()">🗑 Delete</button>
+      <button class="ghost-btn" onclick="closeEditModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- MESSAGING MODAL -->
+<div class="modal-overlay" id="msg-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      💬 Message — <span id="msg-modal-agency"></span>
+      <button class="modal-close" onclick="closeMsgModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="msg-thread" id="msg-thread"></div>
+      <div class="msg-compose">
+        <textarea id="msg-input" placeholder="Type your message…" rows="2"></textarea>
+        <button class="msg-send-btn" onclick="sendMessage()">Send 📤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- HAMBURGER -->
+
+<!-- EDIT QUESTION MODAL -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      ✏️ Edit Question
+      <button class="modal-close" onclick="closeEditModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-row-index">
+      <div class="form-group">
+        <label class="form-label">Module</label>
+        <select class="form-select" id="edit-module">
+          <option>Fire Safety</option><option>Road Safety</option>
+          <option>Disaster Management</option><option>Emergency Response</option>
+          <option>Border Safety</option><option>Environmental Safety</option>
+          <option>Tourism Safety</option><option>Drug Awareness</option>
+          <option>General Safety</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Level</label>
+        <select class="form-select" id="edit-level">
+          <option>Level 1 — Easy</option>
+          <option>Level 2 — Medium</option>
+          <option>Level 3 — Hard</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Question</label>
+        <textarea class="form-textarea" id="edit-question" style="min-height:80px;"></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group"><label class="form-label">Option A</label><input class="form-input" id="edit-a"></div>
+        <div class="form-group"><label class="form-label">Option B</label><input class="form-input" id="edit-b"></div>
+        <div class="form-group"><label class="form-label">Option C</label><input class="form-input" id="edit-c"></div>
+        <div class="form-group"><label class="form-label">Option D</label><input class="form-input" id="edit-d"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Correct Answer</label>
+        <div style="display:flex;gap:8px;" id="edit-correct-row">
+          <button class="correct-opt" onclick="setEditCorrect(this,'A')">A</button>
+          <button class="correct-opt" onclick="setEditCorrect(this,'B')">B</button>
+          <button class="correct-opt" onclick="setEditCorrect(this,'C')">C</button>
+          <button class="correct-opt" onclick="setEditCorrect(this,'D')">D</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Explanation</label>
+        <textarea class="form-textarea" id="edit-explanation" style="min-height:70px;"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">🖼️ Question Image (optional)</label>
+        <div class="img-upload-area" id="edit-img-area">
+          <input type="file" accept="image/*" id="edit-img-input" onchange="previewEditImage(this)">
+          <div id="edit-img-placeholder">📷 Click or drag image here<br><small style="color:var(--text-dim)">JPG · PNG · SVG · max 2MB</small></div>
+          <img class="img-preview" id="edit-img-preview" src="" alt="">
+          <button id="edit-img-remove" style="display:none;margin-top:8px;" class="ghost-btn" onclick="removeEditImage(event)">✕ Remove Image</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="submit-btn" onclick="saveEditQuestion()">💾 Save Changes</button>
+      <button class="ghost-btn" style="color:var(--danger);border-color:var(--danger);" onclick="deleteQuestion()">🗑 Delete</button>
+      <button class="ghost-btn" onclick="closeEditModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- MESSAGING MODAL -->
+<div class="modal-overlay" id="msg-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      💬 Message — <span id="msg-modal-agency"></span>
+      <button class="modal-close" onclick="closeMsgModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="msg-thread" id="msg-thread"></div>
+      <div class="msg-compose">
+        <textarea id="msg-input" placeholder="Type your message…" rows="2"></textarea>
+        <button class="msg-send-btn" onclick="sendMessage()">Send 📤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- HAMBURGER -->
 <button id="hamburger" onclick="toggleSidebar()">☰</button>
 <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
@@ -998,6 +1338,10 @@
     <button class="nav-item admin-only" data-page="broadcast">
       <span class="nav-icon">📢</span> Broadcast
     </button>
+    <button class="nav-item admin-only" data-page="messages">
+      <span class="nav-icon">💬</span> Messages
+      <span class="nav-badge" id="msg-badge" style="display:none;">0</span>
+    </button>
     <button class="nav-item admin-only" data-page="export">
       <span class="nav-icon">💾</span> Export Quiz
     </button>
@@ -1036,6 +1380,10 @@
   <div id="main">
     <div id="topbar">
       <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div id="online-count-badge" style="display:none;">
+        <span class="dot"></span>
+        <span id="online-count-text">0 online</span>
+      </div>
       <div class="topbar-actions">
         <button class="icon-btn" title="Notifications" onclick="toggleNotifPanel()" id="topbar-notif-btn">
           🔔
@@ -1266,10 +1614,17 @@
       <!-- AGENCIES -->
       <div class="page" id="page-agencies">
         <div class="card">
-          <div class="card-title"><span class="icon">🏛️</span> Agency Overview</div>
-          <div style="font-size: 13px; color: var(--text-dim); margin-bottom: 20px;">
-            🟢 <strong>3 online now</strong> &nbsp;·&nbsp; 11 registered agencies
+          <div class="card-title"><span class="icon">🏛️</span> Agency Overview
+            <button class="ghost-btn" style="margin-left:auto;padding:5px 12px;font-size:11px;" onclick="renderAgencies()">🔄 Refresh</button>
           </div>
+
+          <!-- Online now strip -->
+          <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--text-dim);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px;">🟢 Online Now</div>
+          <div class="online-strip" id="online-strip">
+            <div style="color:var(--text-dim);font-size:13px;">Checking presence…</div>
+          </div>
+
+          <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--text-dim);letter-spacing:0.06em;text-transform:uppercase;margin:16px 0 10px;">All Agencies</div>
           <div class="agencies-grid" id="agencies-grid"></div>
         </div>
       </div>
@@ -1326,6 +1681,15 @@
         <div class="card">
           <div class="card-title"><span class="icon">📋</span> Broadcast History</div>
           <div id="broadcast-history"></div>
+        </div>
+      </div>
+
+      <!-- MESSAGES -->
+      <div class="page" id="page-messages">
+        <div class="card">
+          <div class="card-title"><span class="icon">💬</span> Agency Messages</div>
+          <p style="font-size:13px;color:var(--text-dim);margin-bottom:18px;">Direct messaging between CMG and agency officers. Click an agency to open the conversation.</p>
+          <div id="msg-agency-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;"></div>
         </div>
       </div>
 
@@ -2091,7 +2455,7 @@ async function submitQuestion() {
     correctAnswer: correctAnswer,   // matches CMG Server field name exactly
     explanation:   explanation,
     notes:         notes,
-    submittedBy:   currentUser.name // CMG Server uses submittedBy
+    submittedBy:   (currentUser && currentUser.name) || '' // CMG Server uses submittedBy
   });
 
   if (btn) { btn.textContent = '📤 Submit for Review'; btn.disabled = false; }
@@ -2647,6 +3011,221 @@ function formatDate(iso) {
   catch(e) { return iso; }
 }
 
+
+// ════════════════════════════════════════════════════════
+// EDIT QUESTION
+// ════════════════════════════════════════════════════════
+let _editCorrect = '';
+let _editImgData = '';
+
+function openEditModal(q) {
+  if (typeof q === 'string') q = JSON.parse(q);
+  document.getElementById('edit-row-index').value  = q.rowIndex || '';
+  document.getElementById('edit-module').value     = q.module   || '';
+  document.getElementById('edit-level').value      = q.level    || '';
+  document.getElementById('edit-question').value   = q.question || q.q || '';
+  document.getElementById('edit-a').value          = q.optionA  || (q.answers&&q.answers[0]) || '';
+  document.getElementById('edit-b').value          = q.optionB  || (q.answers&&q.answers[1]) || '';
+  document.getElementById('edit-c').value          = q.optionC  || (q.answers&&q.answers[2]) || '';
+  document.getElementById('edit-d').value          = q.optionD  || (q.answers&&q.answers[3]) || '';
+  document.getElementById('edit-explanation').value= q.explanation || q.explain || '';
+
+  // Set correct answer
+  _editCorrect = q.correctAnswer || ['A','B','C','D'][q.correct] || 'A';
+  document.querySelectorAll('#edit-correct-row .correct-opt').forEach(b => {
+    b.classList.toggle('selected', b.textContent.trim() === _editCorrect);
+  });
+
+  // Image
+  _editImgData = q.imageData || '';
+  const preview = document.getElementById('edit-img-preview');
+  const remove  = document.getElementById('edit-img-remove');
+  const ph      = document.getElementById('edit-img-placeholder');
+  if (_editImgData) {
+    preview.src = _editImgData; preview.classList.add('show');
+    remove.style.display = 'block'; ph.style.display = 'none';
+  } else {
+    preview.classList.remove('show'); remove.style.display = 'none';
+    ph.style.display = 'block';
+  }
+
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').classList.remove('open');
+  _editImgData = '';
+}
+
+function setEditCorrect(btn, val) {
+  document.querySelectorAll('#edit-correct-row .correct-opt').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  _editCorrect = val;
+}
+
+function previewEditImage(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  if (file.size > 2 * 1024 * 1024) { showToast('⚠️ Image must be under 2MB'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    _editImgData = e.target.result;
+    const preview = document.getElementById('edit-img-preview');
+    const remove  = document.getElementById('edit-img-remove');
+    const ph      = document.getElementById('edit-img-placeholder');
+    preview.src = _editImgData; preview.classList.add('show');
+    remove.style.display = 'block'; ph.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeEditImage(e) {
+  e.stopPropagation();
+  _editImgData = '';
+  const preview = document.getElementById('edit-img-preview');
+  const remove  = document.getElementById('edit-img-remove');
+  const ph      = document.getElementById('edit-img-placeholder');
+  preview.classList.remove('show'); preview.src = '';
+  remove.style.display = 'none'; ph.style.display = 'block';
+  document.getElementById('edit-img-input').value = '';
+}
+
+async function saveEditQuestion() {
+  const rowIndex = document.getElementById('edit-row-index').value;
+  if (!rowIndex) { showToast('⚠️ No question selected'); return; }
+
+  const body = {
+    action:        'editQuestion',
+    rowIndex:      parseInt(rowIndex),
+    module:        document.getElementById('edit-module').value,
+    level:         document.getElementById('edit-level').value,
+    question:      document.getElementById('edit-question').value.trim(),
+    optionA:       document.getElementById('edit-a').value.trim(),
+    optionB:       document.getElementById('edit-b').value.trim(),
+    optionC:       document.getElementById('edit-c').value.trim(),
+    optionD:       document.getElementById('edit-d').value.trim(),
+    correctAnswer: _editCorrect,
+    explanation:   document.getElementById('edit-explanation').value.trim(),
+    editedBy:      currentUser.name
+  };
+
+  // Only send image if it was changed
+  if (_editImgData && !_editImgData.startsWith('http')) body.imageData = _editImgData;
+
+  showToast('⏳ Saving changes…');
+  const res = await apiPost(body);
+  if (res && res.status === 'ok') {
+    showToast('✅ Question updated successfully');
+    closeEditModal();
+    loadReviewQuestions();
+  } else {
+    showToast('❌ Save failed: ' + (res?.message || res?.error || 'CMG Server error'));
+  }
+}
+
+async function deleteQuestion() {
+  const rowIndex = document.getElementById('edit-row-index').value;
+  if (!rowIndex) return;
+  if (!confirm('Delete this question permanently?')) return;
+  const res = await apiPost({ action: 'deleteQuestion', rowIndex: parseInt(rowIndex), deletedBy: currentUser.name });
+  if (res && res.status === 'ok') {
+    showToast('🗑 Question deleted');
+    closeEditModal();
+    loadReviewQuestions();
+    renderDashboard();
+  } else {
+    showToast('❌ Delete failed: ' + (res?.message || ''));
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// MESSAGING SYSTEM
+// ════════════════════════════════════════════════════════
+let _msgTargetAgency = '';
+let _msgTargetRow    = '';
+let _msgHistory      = {};
+
+function renderMsgAgencyList() {
+  const el = document.getElementById('msg-agency-list');
+  if (!el) return;
+  const agencies = ACCOUNTS.filter(a => a.role === 'agency');
+  el.innerHTML = agencies.map(a => {
+    const msgs = _msgHistory[a.name] || [];
+    const unread = msgs.filter(m => m.from !== currentUser.name && !m.read).length;
+    return `<div class="qa-btn" onclick="openMsgModal('${a.name}','')">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="font-size:22px;">🏛️</div>
+        <div>
+          <div class="qa-label">${a.name}</div>
+          <div class="qa-desc">${msgs.length ? msgs[msgs.length-1].text.slice(0,40)+'…' : 'No messages yet'}</div>
+        </div>
+        ${unread ? `<span class="nav-badge" style="margin-left:auto;">${unread}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openMsgModal(agency, rowIndex) {
+  _msgTargetAgency = agency;
+  _msgTargetRow    = rowIndex;
+  document.getElementById('msg-modal-agency').textContent = agency;
+  document.getElementById('msg-input').value = '';
+  renderMsgThread();
+  document.getElementById('msg-modal').classList.add('open');
+  // Mark messages as read
+  if (_msgHistory[agency]) {
+    _msgHistory[agency].forEach(m => { if (m.from !== currentUser.name) m.read = true; });
+    renderMsgAgencyList();
+  }
+}
+
+function closeMsgModal() {
+  document.getElementById('msg-modal').classList.remove('open');
+}
+
+function renderMsgThread() {
+  const thread = document.getElementById('msg-thread');
+  const msgs   = _msgHistory[_msgTargetAgency] || [];
+  if (!msgs.length) {
+    thread.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:20px;font-size:13px;">No messages yet. Start the conversation.</div>';
+    return;
+  }
+  thread.innerHTML = msgs.map(m => {
+    const sent = m.from === currentUser.name;
+    return `<div class="msg-bubble ${sent?'sent':'received'}">
+      <div class="msg-sender">${m.from}</div>
+      ${m.text}
+      <div class="msg-time">${new Date(m.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div>
+    </div>`;
+  }).join('');
+  thread.scrollTop = thread.scrollHeight;
+}
+
+async function sendMessage() {
+  const text = document.getElementById('msg-input').value.trim();
+  if (!text) return;
+
+  const msg = { from: currentUser.name, to: _msgTargetAgency, text, ts: Date.now(), read: false };
+
+  // Store locally
+  if (!_msgHistory[_msgTargetAgency]) _msgHistory[_msgTargetAgency] = [];
+  _msgHistory[_msgTargetAgency].push(msg);
+
+  // Send as notification to the agency
+  await apiPost({
+    action:       'pushNotification',
+    targetAgency: _msgTargetAgency,
+    type:         'type-broadcast',
+    title:        '💬 Message from ' + currentUser.name,
+    msg:          text
+  });
+
+  document.getElementById('msg-input').value = '';
+  renderMsgThread();
+  renderMsgAgencyList();
+  showToast('📤 Message sent to ' + _msgTargetAgency);
+}
+
 // ── INIT ──
 // ════════════════════════════════════════════════════════
 // NAVIGATION
@@ -2674,6 +3253,7 @@ function navigate(page) {
     leaderboard:     'Leaderboard',
     analytics:       'Analytics',
     notifications:   'Notifications',
+    messages:        'Messages',
     guidelines:      'Guidelines'
   };
   const titleEl = document.getElementById('topbar-title');
@@ -2682,6 +3262,7 @@ function navigate(page) {
   // Load data for the tab being opened
   if (page === 'my-questions')   loadMyQuestions();
   if (page === 'notifications')  { loadNotifications(true); renderNotifPage(); markAllRead(); }
+  if (page === 'messages')       { renderMsgAgencyList(); }
   if (page === 'dashboard')     renderDashboard();
   if (page === 'leaderboard')   renderLeaderboard();
   if (page === 'analytics')     renderAnalytics();
@@ -2781,6 +3362,14 @@ function initAll() {
   renderAnalytics();
   renderExport();
   startNotifPolling();
+  if (currentUser.role === 'admin') {
+    renderMsgAgencyList();
+    checkOnlinePresence();
+    // Re-check presence every 3 minutes
+    setInterval(checkOnlinePresence, 180000);
+  } else {
+    registerPresence(); // agency logs in — notify admin
+  }
 }
 </script>
 
@@ -2796,7 +3385,6 @@ function initAll() {
 
 
 <script>
-// Only register SW on GitHub Pages
 if ('serviceWorker' in navigator && location.hostname === 'cadetmediaoffice.github.io') {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/naad-portal/naad-sw.js')
@@ -2806,62 +3394,17 @@ if ('serviceWorker' in navigator && location.hostname === 'cadetmediaoffice.gith
         reg.addEventListener('updatefound', () => {
           const sw = reg.installing;
           sw.addEventListener('statechange', () => {
-            if (sw.state === 'installed' && navigator.serviceWorker.controller) showUpdateBanner();
+            if (sw.state === 'installed' && navigator.serviceWorker.controller) {
+              showUpdateBanner();
+            }
           });
         });
       })
-      .catch(() => {}); // silent fail
-  });
-  navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
-});
-        });
-        // Force check for update on every load
-        reg.update();
-      })
-      .catch(e => console.log('SW registration failed:', e.message));
-
-    // When new SW takes control — reload to get fresh version
-    let refreshing = false;
+      .catch(() => {});
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (!refreshing) { refreshing = true; window.location.reload(); }
+      location.reload();
     });
   });
-}
-
-function showUpdateBanner() {
-  // Show update available toast
-  const banner = document.createElement('div');
-  banner.id = 'update-banner';
-  banner.style.cssText = `
-    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
-    background:linear-gradient(135deg,#f0a820,#c87c10);
-    color:#0d1a2e;border-radius:50px;
-    padding:12px 24px;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;
-    box-shadow:0 8px 32px rgba(232,160,32,0.4);z-index:9999;
-    display:flex;align-items:center;gap:12px;white-space:nowrap;
-    animation:slideUp 0.3s ease;
-  `;
-  banner.innerHTML = `
-    🔄 New version available!
-    <button onclick="doUpdate()" style="background:#0d1a2e;color:#e8a020;border:none;
-      border-radius:6px;padding:6px 14px;font-family:'Syne',sans-serif;
-      font-weight:700;font-size:12px;cursor:pointer;">Update Now</button>
-    <button onclick="this.parentElement.remove()" style="background:none;border:none;
-      color:#0d1a2e;font-size:18px;cursor:pointer;padding:0 4px;line-height:1;">✕</button>
-  `;
-  document.body.appendChild(banner);
-}
-
-function doUpdate() {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistration().then(reg => {
-      if (reg && reg.waiting) {
-        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-      } else {
-        window.location.reload();
-      }
-    });
-  }
 }
 </script>
 
