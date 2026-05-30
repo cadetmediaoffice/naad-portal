@@ -1582,7 +1582,9 @@
       <!-- REVIEW -->
       <div class="page" id="page-review">
         <div class="card">
-          <div class="card-title"><span class="icon">🔍</span> Review All Submissions</div>
+          <div class="card-title"><span class="icon">🔍</span> Review All Submissions
+            <button class="ghost-btn" style="margin-left:auto;padding:5px 12px;font-size:11px;" onclick="loadReviewQuestions()">🔄 Refresh</button>
+          </div>
           <div class="stats-grid" style="grid-template-columns: repeat(3,1fr); margin-bottom: 20px;">
             <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value gold" id="rv-total">⏳</div></div>
             <div class="stat-card"><div class="stat-label">Approved</div><div class="stat-value green" id="rv-approved">⏳</div></div>
@@ -1809,16 +1811,22 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbww1yKs60nUWmgsmwthF
 // ════════════════════════════════════════════════════════
 async function api(params) {
   try {
-    const url        = SCRIPT_URL + '?' + new URLSearchParams(params).toString();
+    const url = SCRIPT_URL + '?' + new URLSearchParams(params).toString();
     const controller = new AbortController();
-    const timer      = setTimeout(() => controller.abort(), 12000);
-    const res        = await fetch(url, { signal: controller.signal });
+    const timer = setTimeout(() => controller.abort(), 15000);
+    const res = await fetch(url, {
+      method: 'GET',
+      redirect: 'follow',        // follow Google's redirect
+      signal: controller.signal
+    });
     clearTimeout(timer);
     const text = await res.text();
+    if (!text || text.trim() === '') return { status: 'error', error: 'Empty response from CMG Server' };
+    if (text.includes('Host not in allowlist')) return { status: 'error', error: 'Access denied — open portal from GitHub Pages' };
     try { return JSON.parse(text); }
-    catch(e) { return { status: 'error', error: 'Bad response from CMG Server' }; }
+    catch(e) { return { status: 'error', error: 'Invalid response: ' + text.slice(0,80) }; }
   } catch(e) {
-    if (e.name === 'AbortError') return { status: 'error', error: 'CMG Server timeout — check your connection' };
+    if (e.name === 'AbortError') return { status: 'error', error: 'CMG Server timeout — check connection' };
     return { status: 'error', error: e.message };
   }
 }
@@ -2536,12 +2544,15 @@ function renderMyQ(filter) {
 // ════════════════════════════════════════════════════════
 async function loadReviewQuestions() {
   const body = document.getElementById('review-body');
-  body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-dim);">⏳ Connecting to CMG Server…</td></tr>';
+  body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-dim);">⏳ Connecting to CMG Server…</td></tr>';
 
   const data = await api({ action: 'getAllQuestions' });
 
-  if (data && data.status === 'error') {
-    body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#e06060;padding:20px;">⚠️ ' + (data.error || 'Could not connect to CMG Server') + '</td></tr>';
+  if (!data || data.status === 'error') {
+    body.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:24px;">
+      <div style="color:#e06060;margin-bottom:12px;">⚠️ ${(data&&data.error)||'Could not connect to CMG Server'}</div>
+      <button class="ghost-btn" onclick="loadReviewQuestions()" style="font-size:12px;">🔄 Retry</button>
+    </td></tr>`;
     return;
   }
 
