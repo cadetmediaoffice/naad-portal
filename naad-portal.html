@@ -1809,45 +1809,69 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbww1yKs60nUWmgsmwthF
 // DO NOT add mode:'cors' — CMG Server handles CORS
 // via redirect. Let the browser follow naturally.
 // ════════════════════════════════════════════════════════
-async function api(params) {
-  try {
-    const url = SCRIPT_URL + '?' + new URLSearchParams(params).toString();
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 15000);
-    const res = await fetch(url, {
-      method: 'GET',
-      redirect: 'follow',        // follow Google's redirect
-      signal: controller.signal
-    });
-    clearTimeout(timer);
-    const text = await res.text();
-    if (!text || text.trim() === '') return { status: 'error', error: 'Empty response from CMG Server' };
-    if (text.includes('Host not in allowlist')) return { status: 'error', error: 'Access denied — open portal from GitHub Pages' };
-    try { return JSON.parse(text); }
-    catch(e) { return { status: 'error', error: 'Invalid response: ' + text.slice(0,80) }; }
-  } catch(e) {
-    if (e.name === 'AbortError') return { status: 'error', error: 'CMG Server timeout — check connection' };
-    return { status: 'error', error: e.message };
-  }
+// ── JSONP — bypasses CORS for Google Apps Script ──
+function api(params) {
+  return new Promise((resolve) => {
+    const cb  = 'naad_cb_' + Date.now() + '_' + Math.floor(Math.random()*99999);
+    const timer = setTimeout(() => {
+      delete window[cb];
+      const s = document.getElementById(cb);
+      if (s) s.remove();
+      resolve({ status: 'error', error: 'CMG Server timeout — please retry' });
+    }, 20000);
+
+    window[cb] = (data) => {
+      clearTimeout(timer);
+      delete window[cb];
+      const s = document.getElementById(cb);
+      if (s) s.remove();
+      resolve(data);
+    };
+
+    const script = document.createElement('script');
+    script.id  = cb;
+    script.src = SCRIPT_URL + '?' + new URLSearchParams({ ...params, callback: cb }).toString();
+    script.onerror = () => {
+      clearTimeout(timer);
+      delete window[cb];
+      script.remove();
+      resolve({ status: 'error', error: 'Could not reach CMG Server' });
+    };
+    document.head.appendChild(script);
+  });
 }
 
 async function apiPost(body) {
   try {
     const controller = new AbortController();
-    const timer      = setTimeout(() => controller.abort(), 15000);
-    const res        = await fetch(SCRIPT_URL, {
+    const timer = setTimeout(() => controller.abort(), 15000);
+    const res = await fetch(SCRIPT_URL, {
       method:  'POST',
-      headers: { 'Content-Type': 'text/plain' },
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body:    JSON.stringify(body),
       signal:  controller.signal
     });
     clearTimeout(timer);
-    const text = await res.text();
-    try { return JSON.parse(text); }
-    catch(e) { return { status: 'ok' }; }
+    try {
+      const text = await res.text();
+      return JSON.parse(text);
+    } catch(e) {
+      return { status: 'ok' }; // GAS POST may return opaque
+    }
   } catch(e) {
-    if (e.name === 'AbortError') return { status: 'error', error: 'CMG Server timeout — check your connection' };
-    return { status: 'error', error: e.message };
+    if (e.name === 'AbortError') return { status: 'error', error: 'CMG Server timeout' };
+    // Fallback: try no-cors (fire-and-forget)
+    try {
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(body)
+      });
+      return { status: 'ok' };
+    } catch(e2) {
+      return { status: 'error', error: e2.message };
+    }
   }
 }
 
