@@ -2689,28 +2689,46 @@ async function renderDashboard() {
 // (No getAgencyProgress action exists in CMG Server)
 // ════════════════════════════════════════════════════════
 async function renderAgencies() {
-  const grid = document.getElementById('agencies-grid');
-  grid.innerHTML = '<div style="color:var(--text-dim);padding:20px;">⏳ Connecting to CMG Server…</div>';
+  const grid  = document.getElementById('agencies-grid');
+  const strip = document.getElementById('online-strip');
+  if (grid)  grid.innerHTML  = '<div style="color:var(--text-dim);padding:20px;">⏳ Connecting to CMG Server…</div>';
+  if (strip) strip.innerHTML = '<div style="color:var(--text-dim);font-size:13px;">Checking presence…</div>';
 
-  const data  = await api({ action: 'getAllQuestions' });
-  const questions = (data && data.questions) || [];
+  const [qData] = await Promise.all([
+    api({ action: 'getAllQuestions' }),
+    checkOnlinePresence()
+  ]);
 
-  // Group by submitter agency
+  const questions    = (qData && qData.questions) || [];
+  const now          = Date.now();
+  const ONLINE_WIN   = 5 * 60 * 1000;
+
   const agencyMap = {};
   ACCOUNTS.filter(a => a.role === 'agency').forEach(a => {
-    agencyMap[a.name] = { name: a.name, code: a.code, submitted: 0, target: 30, online: false };
+    const presence = _onlineAgencies[a.name];
+    const isOnline = !!(presence && (now - presence.lastSeen) < ONLINE_WIN);
+    const lastSeen = presence ? new Date(presence.lastSeen).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) : null;
+    agencyMap[a.name] = { name: a.name, code: a.code, submitted: 0, target: 30, isOnline, lastSeen };
   });
-  questions.forEach(q => {
-    const src = q.source || '';
-    if (agencyMap[src]) agencyMap[src].submitted++;
-  });
+  questions.forEach(q => { const src = q.source||''; if (agencyMap[src]) agencyMap[src].submitted++; });
 
   const agencies = Object.values(agencyMap);
-  grid.innerHTML = agencies.map(a => {
-    const pct  = Math.min(100, Math.round((a.submitted / a.target) * 100));
-    const r    = 30, circ = 2 * Math.PI * r, dash = (pct/100)*circ;
-    return `
-      <div class="agency-card">
+  const online   = agencies.filter(a => a.isOnline);
+
+  // Online strip
+  if (strip) {
+    strip.innerHTML = online.length === 0
+      ? '<div class="offline-chip"><span class="dot"></span>No agencies online right now</div>'
+      : online.map(a => `<div class="online-chip"><span class="dot"></span><span class="chip-label">${a.code} — ${a.name}</span><span class="chip-time">since ${a.lastSeen||'just now'}</span></div>`).join('');
+  }
+
+  // Agency cards — online first
+  if (grid) {
+    grid.innerHTML = agencies.sort((a,b) => b.isOnline - a.isOnline).map(a => {
+      const pct  = Math.min(100, Math.round((a.submitted/a.target)*100));
+      const r=30, circ=2*Math.PI*r, dash=(pct/100)*circ;
+      return `<div class="agency-card">
+        <div class="${a.isOnline?'agency-online-badge':'agency-offline-badge'}"></div>
         <div class="ring-wrap">
           <svg viewBox="0 0 72 72" width="72" height="72">
             <circle cx="36" cy="36" r="${r}" fill="none" stroke="rgba(232,160,32,0.12)" stroke-width="6"/>
@@ -2721,8 +2739,10 @@ async function renderAgencies() {
         </div>
         <div class="agency-name">${a.name}</div>
         <div class="agency-meta">${a.submitted}/${a.target} questions</div>
+        <div class="agency-last-seen">${a.isOnline?'🟢 Online now':(a.lastSeen?'⚫ Last seen '+a.lastSeen:'⚫ Offline')}</div>
       </div>`;
-  }).join('');
+    }).join('');
+  }
 }
 
 // ════════════════════════════════════════════════════════
