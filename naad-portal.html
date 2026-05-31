@@ -2726,44 +2726,43 @@ async function renderDashboard() {
 async function renderAgencies() {
   const grid  = document.getElementById('agencies-grid');
   const strip = document.getElementById('online-strip');
-  if (grid)  grid.innerHTML  = '<div style="color:var(--text-dim);padding:20px;">⏳ Connecting to CMG Server…</div>';
-  if (strip) strip.innerHTML = '<div style="color:var(--text-dim);font-size:13px;">Checking presence…</div>';
+  if (grid)  grid.innerHTML  = '<div style="color:var(--text-dim);padding:20px;">⏳ Loading…</div>';
+  if (strip) strip.innerHTML = '<div style="color:var(--text-dim);font-size:13px;">Checking…</div>';
 
-  const [qData] = await Promise.all([
-    api({ action: 'getAllQuestions' }),
-    checkOnlinePresence()
-  ]);
+  const qData = await api({ action: 'getAllQuestions' });
+  const questions = (qData && qData.questions) || [];
 
-  const questions    = (qData && qData.questions) || [];
-  const now          = Date.now();
-  const ONLINE_WIN   = 5 * 60 * 1000;
-
+  // Count per agency
   const agencyMap = {};
   ACCOUNTS.filter(a => a.role === 'agency').forEach(a => {
-    const presence = _onlineAgencies[a.name];
-    const isOnline = !!(presence && (now - presence.lastSeen) < ONLINE_WIN);
-    const lastSeen = presence ? new Date(presence.lastSeen).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) : null;
-    agencyMap[a.name] = { name: a.name, code: a.code, submitted: 0, target: 30, isOnline, lastSeen };
+    agencyMap[a.name] = { name: a.name, code: a.code, submitted: 0, target: 30 };
   });
-  questions.forEach(q => { const src = q.source||''; if (agencyMap[src]) agencyMap[src].submitted++; });
+  questions.forEach(q => {
+    const src = q.source || '';
+    if (agencyMap[src]) agencyMap[src].submitted++;
+  });
 
   const agencies = Object.values(agencyMap);
-  const online   = agencies.filter(a => a.isOnline);
 
-  // Online strip
+  // Online strip — check _onlineAgencies (from background polling)
+  const now = Date.now();
+  const WIN = 5 * 60 * 1000;
+  const online = agencies.filter(a => _onlineAgencies[a.name] && (now - _onlineAgencies[a.name].lastSeen) < WIN);
+
   if (strip) {
     strip.innerHTML = online.length === 0
       ? '<div class="offline-chip"><span class="dot"></span>No agencies online right now</div>'
-      : online.map(a => `<div class="online-chip"><span class="dot"></span><span class="chip-label">${a.code} — ${a.name}</span><span class="chip-time">since ${a.lastSeen||'just now'}</span></div>`).join('');
+      : online.map(a => `<div class="online-chip"><span class="dot"></span><span class="chip-label">${a.code} — ${a.name}</span></div>`).join('');
   }
 
-  // Agency cards — online first
+  // Agency cards
   if (grid) {
-    grid.innerHTML = agencies.sort((a,b) => b.isOnline - a.isOnline).map(a => {
-      const pct  = Math.min(100, Math.round((a.submitted/a.target)*100));
-      const r=30, circ=2*Math.PI*r, dash=(pct/100)*circ;
+    grid.innerHTML = agencies.map(a => {
+      const pct  = Math.min(100, Math.round((a.submitted / a.target) * 100));
+      const r = 30, circ = 2 * Math.PI * r, dash = (pct/100)*circ;
+      const isOnline = _onlineAgencies[a.name] && (now - _onlineAgencies[a.name].lastSeen) < WIN;
       return `<div class="agency-card">
-        <div class="${a.isOnline?'agency-online-badge':'agency-offline-badge'}"></div>
+        <div class="${isOnline ? 'agency-online-badge' : 'agency-offline-badge'}"></div>
         <div class="ring-wrap">
           <svg viewBox="0 0 72 72" width="72" height="72">
             <circle cx="36" cy="36" r="${r}" fill="none" stroke="rgba(232,160,32,0.12)" stroke-width="6"/>
@@ -2774,7 +2773,7 @@ async function renderAgencies() {
         </div>
         <div class="agency-name">${a.name}</div>
         <div class="agency-meta">${a.submitted}/${a.target} questions</div>
-        <div class="agency-last-seen">${a.isOnline?'🟢 Online now':(a.lastSeen?'⚫ Last seen '+a.lastSeen:'⚫ Offline')}</div>
+        <div class="agency-last-seen">${isOnline ? '🟢 Online now' : '⚫ Offline'}</div>
       </div>`;
     }).join('');
   }
@@ -2785,11 +2784,11 @@ async function renderAgencies() {
 // ════════════════════════════════════════════════════════
 async function renderProgress() {
   const el = document.getElementById('progress-list');
-  el.innerHTML = '<div style="color:var(--text-dim);padding:16px;">⏳ Connecting to CMG Server…</div>';
+  el.innerHTML = '<div style="color:var(--text-dim);padding:16px;">⏳ Loading…</div>';
 
-  const data      = await api({ action: 'getAllQuestions' });
+  const data = await api({ action: 'getAllQuestions' });
   const questions = (data && data.questions) || [];
-  const total     = 30;
+  const total = 30;
 
   const agencyMap = {};
   ACCOUNTS.filter(a => a.role === 'agency').forEach(a => {
@@ -2797,36 +2796,36 @@ async function renderProgress() {
   });
   questions.forEach(q => {
     const src = q.source || '';
-    const lvl = (q.level||'').toLowerCase();
+    const lvl = String(q.level||'').toLowerCase();
     if (agencyMap[src]) {
-      if (lvl.includes('easy'))   agencyMap[src].easy++;
-      else if (lvl.includes('medium') || lvl.includes('2')) agencyMap[src].medium++;
-      else if (lvl.includes('hard')   || lvl.includes('3')) agencyMap[src].hard++;
+      if (lvl.includes('easy') || lvl === '1')        agencyMap[src].easy++;
+      else if (lvl.includes('medium') || lvl === '2') agencyMap[src].medium++;
+      else if (lvl.includes('hard') || lvl === '3')   agencyMap[src].hard++;
+      else agencyMap[src].easy++; // default
     }
   });
 
   el.innerHTML = Object.values(agencyMap).map(a => {
     const submitted = a.easy + a.medium + a.hard;
     const pct = Math.min(100, Math.round((submitted / total) * 100));
-    return `
-      <div style="margin-bottom:20px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-          <div style="font-size:13px;font-weight:600;">${a.name}</div>
-          <div style="font-size:12px;color:var(--text-dim);">${submitted}/${total} &nbsp;
-            <span style="color:${pct>=100?'#1d9e75':'#e8a020'};font-weight:700;">${pct}%</span>
-          </div>
+    return `<div style="margin-bottom:20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="font-size:13px;font-weight:600;">${a.name}</div>
+        <div style="font-size:12px;color:var(--text-dim);">${submitted}/${total}
+          <span style="color:${pct>=100?'#1d9e75':'#e8a020'};font-weight:700;margin-left:6px;">${pct}%</span>
         </div>
-        <div style="height:8px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;position:relative;">
-          <div style="position:absolute;left:0;top:0;height:100%;width:${(a.easy/total)*100}%;background:#1d9e75;"></div>
-          <div style="position:absolute;left:${(a.easy/total)*100}%;top:0;height:100%;width:${(a.medium/total)*100}%;background:#e8a020;"></div>
-          <div style="position:absolute;left:${((a.easy+a.medium)/total)*100}%;top:0;height:100%;width:${(a.hard/total)*100}%;background:#e06060;"></div>
-        </div>
-        <div style="display:flex;gap:16px;margin-top:6px;font-size:11px;">
-          <span style="color:#1d9e75;">Easy: ${a.easy}/10</span>
-          <span style="color:#e8a020;">Medium: ${a.medium}/12</span>
-          <span style="color:#e06060;">Hard: ${a.hard}/8</span>
-        </div>
-      </div>`;
+      </div>
+      <div style="height:8px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;position:relative;">
+        <div style="position:absolute;left:0;top:0;height:100%;width:${(a.easy/total)*100}%;background:#1d9e75;"></div>
+        <div style="position:absolute;left:${(a.easy/total)*100}%;top:0;height:100%;width:${(a.medium/total)*100}%;background:#e8a020;"></div>
+        <div style="position:absolute;left:${((a.easy+a.medium)/total)*100}%;top:0;height:100%;width:${(a.hard/total)*100}%;background:#e06060;"></div>
+      </div>
+      <div style="display:flex;gap:16px;margin-top:6px;font-size:11px;">
+        <span style="color:#1d9e75;">Easy: ${a.easy}/10</span>
+        <span style="color:#e8a020;">Medium: ${a.medium}/12</span>
+        <span style="color:#e06060;">Hard: ${a.hard}/8</span>
+      </div>
+    </div>`;
   }).join('');
 }
 
