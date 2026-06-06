@@ -1022,6 +1022,14 @@
   }
   #online-count-badge .dot { width:6px;height:6px;border-radius:50%;background:#1d9e75;animation:pulse-dot 2s infinite; }
 
+
+  .submit-tab {
+    flex:1; padding:11px; background:none; border:none;
+    font-family:'Syne',sans-serif; font-size:13px; font-weight:700;
+    color:var(--text-dim); cursor:pointer; transition:all 0.2s;
+  }
+  .submit-tab.active { background:var(--gold); color:var(--navy); }
+
   /* ── SCROLLBAR ── */
   ::-webkit-scrollbar { width: 5px; }
   ::-webkit-scrollbar-track { background: var(--navy); }
@@ -1468,8 +1476,26 @@
       <!-- SUBMIT -->
       <div class="page" id="page-submit">
         <div class="card">
-          <div class="card-title"><span class="icon">✏️</span> Submit a Question</div>
-          <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 22px;">All submissions are reviewed by CMG before going live in the NAAD system.</p>
+          <div class="card-title"><span class="icon">✏️</span> Submit Questions</div>
+          <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px;">Add safety questions to NAAD. All submissions are reviewed by CMG before going live.</p>
+
+          <!-- Excel template download -->
+          <div style="background:rgba(29,158,117,0.08);border:1px solid rgba(29,158,117,0.25);border-radius:10px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            <div style="font-size:22px;">📥</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:3px;">Download Excel Template</div>
+              <div style="font-size:12px;color:var(--text-dim);">Prefer to submit many questions at once? Download the template, fill it in and upload below.</div>
+            </div>
+            <button class="submit-btn" style="padding:9px 18px;font-size:13px;" onclick="downloadTemplate()">⬇️ Download Template</button>
+          </div>
+
+          <!-- Tab switcher -->
+          <div style="display:flex;gap:0;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:22px;">
+            <button id="tab-type" class="submit-tab active" onclick="switchSubmitTab('type')">✏️ Type Question</button>
+            <button id="tab-upload" class="submit-tab" onclick="switchSubmitTab('upload')">📤 Upload Excel</button>
+          </div>
+
+          <div id="submit-type-panel">
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
             <div class="form-group">
@@ -1544,11 +1570,32 @@
             <input class="form-input" id="q-notes" placeholder="Any notes for the reviewer…">
           </div>
 
-          <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 8px;">
-            <button class="submit-btn" onclick="submitQuestion()">📤 Submit for Review</button>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px;">
+            <button class="submit-btn" onclick="submitQuestion()">📤 Submit Question for Review</button>
             <button class="ghost-btn" onclick="saveDraft()">💾 Save Draft</button>
-            <span id="draft-status" style="font-size: 11px; color: var(--text-dim);"></span>
+            <span id="draft-status" style="font-size:11px;color:var(--text-dim);">📝 Draft auto-saves every 30s</span>
           </div>
+          </div><!-- end submit-type-panel -->
+
+          <!-- UPLOAD EXCEL panel -->
+          <div id="submit-upload-panel" style="display:none;">
+            <div style="border:2px dashed var(--border-strong);border-radius:12px;padding:40px 20px;text-align:center;cursor:pointer;position:relative;transition:all 0.2s;" id="excel-drop-zone" onclick="document.getElementById('excel-file-input').click()">
+              <input type="file" id="excel-file-input" accept=".xlsx" style="display:none;" onchange="handleExcelUpload(this)">
+              <div style="font-size:40px;margin-bottom:12px;">📊</div>
+              <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:6px;">Drop your Excel file here</div>
+              <div style="font-size:12px;color:var(--text-dim);">or click to browse · .xlsx only · Max 10MB</div>
+              <button class="ghost-btn" style="margin-top:14px;" onclick="event.stopPropagation();document.getElementById('excel-file-input').click()">Browse Files</button>
+            </div>
+            <div id="excel-preview" style="margin-top:16px;display:none;">
+              <div class="card-title" style="font-size:13px;margin-bottom:12px;">🔍 Pre-Upload Validation Report</div>
+              <div id="excel-report"></div>
+              <div style="display:flex;gap:10px;margin-top:14px;">
+                <button class="submit-btn" onclick="proceedExcelUpload()">📤 Proceed with Upload</button>
+                <button class="ghost-btn" onclick="cancelExcelUpload()">✕ Cancel</button>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -1590,16 +1637,24 @@
             <div class="stat-card"><div class="stat-label">Approved</div><div class="stat-value green" id="rv-approved">⏳</div></div>
             <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value gold" id="rv-pending">⏳</div></div>
           </div>
-          <div class="filter-tabs">
-            <button class="filter-tab active" onclick="filterQ(this,'all','review')">All</button>
-            <button class="filter-tab" onclick="filterQ(this,'pending','review')">⏳ Pending</button>
-            <button class="filter-tab" onclick="filterQ(this,'approved','review')">✅ Approved</button>
-            <button class="filter-tab" onclick="filterQ(this,'rejected','review')">❌ Rejected</button>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+            <div class="filter-tabs" style="margin:0;">
+              <button class="filter-tab active" onclick="filterQ(this,'all','review')">All</button>
+              <button class="filter-tab" onclick="filterQ(this,'pending','review')">⏳ Pending</button>
+              <button class="filter-tab" onclick="filterQ(this,'approved','review')">✅ Approved</button>
+              <button class="filter-tab" onclick="filterQ(this,'rejected','review')">❌ Rejected</button>
+            </div>
+            <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="ghost-btn" style="font-size:11px;padding:5px 12px;color:var(--success);border-color:var(--success);" onclick="approveAllPending()">✅ Approve All Pending</button>
+              <button class="ghost-btn" style="font-size:11px;padding:5px 12px;color:var(--success);border-color:var(--success);" onclick="approveSelected()">✅ Approve Selected</button>
+              <button class="ghost-btn" style="font-size:11px;padding:5px 12px;color:var(--danger);border-color:var(--danger);" onclick="rejectSelected()">❌ Reject Selected</button>
+            </div>
           </div>
           <div style="overflow-x:auto;">
             <table class="q-table">
               <thead>
                 <tr>
+                  <th><input type="checkbox" id="select-all-cb" onclick="toggleSelectAll(this)"></th>
                   <th>Question</th>
                   <th>Agency</th>
                   <th>Module</th>
@@ -1628,6 +1683,20 @@
 
           <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--text-dim);letter-spacing:0.06em;text-transform:uppercase;margin:16px 0 10px;">All Agencies</div>
           <div class="agencies-grid" id="agencies-grid"></div>
+
+          <!-- Export log -->
+          <div style="margin-top:28px;">
+            <div class="card-title" style="font-size:13px;margin-bottom:12px;">📥 Export & Download Log</div>
+            <p style="font-size:12px;color:var(--text-dim);margin-bottom:12px;">Every time an agency exports a quiz file, it is recorded here.</p>
+            <div style="overflow-x:auto;">
+              <table class="q-table">
+                <thead><tr><th>Agency</th><th>Module</th><th>Questions</th><th>Date & Time</th><th>Status</th></tr></thead>
+                <tbody id="export-log-body">
+                  <tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:20px;">No exports recorded yet.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1635,12 +1704,20 @@
       <div class="page" id="page-progress">
         <div class="card">
           <div class="card-title"><span class="icon">📊</span> Agency Submission Progress</div>
-          <p style="font-size: 12px; color: var(--text-dim); margin-bottom: 22px;">Target: 30 questions · 10 Easy · 12 Medium · 8 Hard per agency</p>
+          <p style="font-size:12px;color:var(--text-dim);margin-bottom:22px;">Target: 30 questions · 10 Easy · 12 Medium · 8 Hard per agency</p>
           <div id="progress-list"></div>
-        </div>
-      </div>
 
-      <!-- DEADLINES -->
+          <div style="margin-top:24px;background:rgba(42,111,184,0.08);border:1px solid rgba(42,111,184,0.25);border-radius:10px;padding:16px 18px;">
+            <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:6px;">🛡️ General Safety — Auto Module</div>
+            <div style="font-size:12px;color:var(--text-dim);line-height:1.7;">Automatically assembled from all approved agency questions. The system picks the best-balanced set — 2–3 questions from each agency — to create a cross-agency safety overview.</div>
+          </div>
+          <div style="margin-top:12px;background:rgba(232,160,32,0.08);border:1px solid rgba(232,160,32,0.2);border-radius:10px;padding:16px 18px;">
+            <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:6px;">🎓 Student Safety — CMG Exclusive</div>
+            <div style="font-size:12px;color:var(--text-dim);line-height:1.7;">Solely managed by CMG. Only the CMG administrator can submit questions for this module.</div>
+          </div>
+        </div>
+
+        <!-- DEADLINES -->
       <div class="page" id="page-deadlines">
         <div class="card">
           <div class="card-title"><span class="icon">⏰</span> Submission Deadlines</div>
@@ -3278,6 +3355,138 @@ async function sendMessage() {
   renderMsgThread();
   renderMsgAgencyList();
   showToast('📤 Message sent to ' + _msgTargetAgency);
+}
+
+
+// ── Submit tab switcher ──
+function switchSubmitTab(tab) {
+  document.getElementById('submit-type-panel').style.display  = tab === 'type'   ? 'block' : 'none';
+  document.getElementById('submit-upload-panel').style.display = tab === 'upload' ? 'block' : 'none';
+  document.getElementById('tab-type').classList.toggle('active',   tab === 'type');
+  document.getElementById('tab-upload').classList.toggle('active', tab === 'upload');
+}
+
+// ── Download Excel template ──
+function downloadTemplate() {
+  var headers = ['Module','Level','Question','OptionA','OptionB','OptionC','OptionD','CorrectAnswer','Explanation'];
+  var example = ['Fire Safety','Level 1 — Easy','What is the first step when discovering a fire?','Call 192','Evacuate immediately','Ignore it','Use extinguisher','B','Evacuating saves lives.'];
+  var rows = [headers, example];
+  var csv = rows.map(function(r) {
+    return r.map(function(c) { return c; }).join(',');
+  }).join('\n');
+  var blob = new Blob([csv], {type: 'text/csv'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'NAAD_Question_Template.csv';
+  a.click();
+  showToast('Template downloaded — open in Excel and fill in your questions');
+}
+
+// ── Excel upload handler ──
+let _excelRows = [];
+function handleExcelUpload(input) {
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var text = e.target.result;
+    var lines = text.split(/\r?\n/).filter(function(l){ return l.trim(); });
+    if (lines.length < 2) { showToast('File appears empty'); return; }
+    var headers = lines[0].split(',').map(function(h){ return h.replace(/"/g,'').trim().toLowerCase(); });
+    _excelRows = [];
+    var report = [];
+    for (var i = 1; i < lines.length; i++) {
+      var cols = lines[i].match(/(".*?"|[^,]+)/g) || [];
+      var row = {};
+      headers.forEach(function(h,j){ row[h] = (cols[j]||'').replace(/^"|"$/g,'').trim(); });
+      var errors = [];
+      if (!row.question) errors.push('Missing question');
+      if (!row.module)   errors.push('Missing module');
+      if (!row.optiona || !row.optionb || !row.optionc || !row.optiond) errors.push('Missing options');
+      if (!['a','b','c','d'].includes((row.correctanswer||'').toLowerCase())) errors.push('Invalid correct answer');
+      if (errors.length) {
+        report.push('<div style="color:#e06060;font-size:12px;padding:3px 0;">Row '+(i+1)+': ❌ '+errors.join(', ')+'</div>');
+      } else {
+        _excelRows.push(row);
+        report.push('<div style="color:#1d9e75;font-size:12px;padding:3px 0;">Row '+(i+1)+': ✅ '+row.question.slice(0,50)+'</div>');
+      }
+    }
+    document.getElementById('excel-report').innerHTML = report.join('') +
+      '<div style="margin-top:10px;font-family:Syne,sans-serif;font-weight:700;font-size:13px;">✅ '+_excelRows.length+' valid · ❌ '+(lines.length-1-_excelRows.length)+' invalid</div>';
+    document.getElementById('excel-preview').style.display = 'block';
+  };
+  reader.readAsText(file);
+}
+
+async function proceedExcelUpload() {
+  if (!_excelRows.length) { showToast('⚠️ No valid rows to upload'); return; }
+  showToast(`⏳ Uploading ${_excelRows.length} questions…`);
+  let success = 0, failed = 0;
+  for (const row of _excelRows) {
+    const res = await apiPost({
+      action: 'submitQuestion',
+      module: row.module, level: row.level,
+      question: row.question,
+      optionA: row.optiona, optionB: row.optionb,
+      optionC: row.optionc, optionD: row.optiond,
+      correctAnswer: (row.correctanswer||'').toUpperCase(),
+      explanation: row.explanation || '',
+      submittedBy: currentUser.name
+    });
+    if (res && res.status === 'ok') success++;
+    else failed++;
+  }
+  showToast(`✅ Uploaded: ${success} questions · ❌ Failed: ${failed}`);
+  cancelExcelUpload();
+  loadMyQuestions();
+}
+
+function cancelExcelUpload() {
+  _excelRows = [];
+  document.getElementById('excel-preview').style.display = 'none';
+  document.getElementById('excel-file-input').value = '';
+}
+
+// ── Bulk review actions ──
+function toggleSelectAll(cb) {
+  document.querySelectorAll('.review-cb').forEach(c => c.checked = cb.checked);
+}
+
+async function approveAllPending() {
+  const pending = _allReviewQ.filter(q => (q.status||'Pending') === 'Pending');
+  if (!pending.length) { showToast('⚠️ No pending questions'); return; }
+  if (!confirm(`Approve all ${pending.length} pending questions?`)) return;
+  showToast(`⏳ Approving ${pending.length} questions…`);
+  let done = 0;
+  for (const q of pending) {
+    await apiPost({ action:'reviewQuestion', rowIndex:q.rowIndex, status:'Approved', reviewedBy:currentUser.name });
+    done++;
+  }
+  showToast(`✅ Approved ${done} questions`);
+  loadReviewQuestions(); renderDashboard();
+}
+
+async function approveSelected() {
+  const selected = [...document.querySelectorAll('.review-cb:checked')].map(c => parseInt(c.dataset.row));
+  if (!selected.length) { showToast('⚠️ No questions selected'); return; }
+  showToast(`⏳ Approving ${selected.length}…`);
+  for (const rowIndex of selected) {
+    await apiPost({ action:'reviewQuestion', rowIndex, status:'Approved', reviewedBy:currentUser.name });
+  }
+  showToast(`✅ Approved ${selected.length} questions`);
+  loadReviewQuestions(); renderDashboard();
+}
+
+async function rejectSelected() {
+  const selected = [...document.querySelectorAll('.review-cb:checked')].map(c => parseInt(c.dataset.row));
+  if (!selected.length) { showToast('⚠️ No questions selected'); return; }
+  const reason = prompt('Rejection reason (optional):') || 'Rejected by CMG Admin';
+  showToast(`⏳ Rejecting ${selected.length}…`);
+  for (const rowIndex of selected) {
+    await apiPost({ action:'reviewQuestion', rowIndex, status:'Rejected', reviewedBy:currentUser.name, notes:reason });
+  }
+  showToast(`❌ Rejected ${selected.length} questions`);
+  loadReviewQuestions(); renderDashboard();
 }
 
 // ── INIT ──
