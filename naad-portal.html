@@ -1405,413 +1405,12 @@
 
       <!-- DASHBOARD -->
       <div class="page active" id="page-dashboard">
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-label">My Submissions</div>
-            <div class="stat-value gold" id="stat-total">⏳</div>
-            <div class="stat-sub">All time</div>
+        <div class="stats-grid" style="margin-bottom:24px;">
+            <div class="stat-card"><div class="stat-label">Total Attempts</div><div class="stat-value gold" id="an-attempts">⏳</div></div>
+            <div class="stat-card"><div class="stat-label">Avg Score</div><div class="stat-value green" id="an-avg">⏳</div></div>
+            <div class="stat-card"><div class="stat-label">Male</div><div class="stat-value blue" id="an-male">⏳</div></div>
+            <div class="stat-card"><div class="stat-label">Female</div><div class="stat-value" id="an-female">⏳</div></div>
           </div>
-          <div class="stat-card">
-            <div class="stat-label">Approved</div>
-            <div class="stat-value green" id="stat-approved">⏳</div>
-            <div class="stat-sub">Live in system</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Pending Review</div>
-            <div class="stat-value gold" id="stat-pending">⏳</div>
-            <div class="stat-sub">Awaiting CMG</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Rejected</div>
-            <div class="stat-value red" id="stat-rejected">⏳</div>
-            <div class="stat-sub">Needs revision</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Active Agencies</div>
-            <div class="stat-value blue" id="stat-agencies">⏳</div>
-            <div class="stat-sub">Registered</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Online Now</div>
-            <div class="stat-value green" id="stat-online">—</div>
-            <div class="stat-sub">Live sessions</div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title"><span class="icon">⚡</span> Quick Actions</div>
-          <div class="quick-actions">
-            <button class="qa-btn" onclick="navigate('submit')">
-              <div class="qa-icon">✏️</div>
-              <div class="qa-label">Submit Question</div>
-              <div class="qa-desc">Add to the NAAD question bank</div>
-            </button>
-            <button class="qa-btn" onclick="navigate('export')">
-              <div class="qa-icon">💾</div>
-              <div class="qa-desc">Export your module quiz</div>
-              <div class="qa-label">Export Quiz</div>
-            </button>
-            <button class="qa-btn" onclick="navigate('guidelines')">
-              <div class="qa-icon">📖</div>
-              <div class="qa-label">View Guidelines</div>
-              <div class="qa-desc">NAAD question standards</div>
-            </button>
-            <button class="qa-btn" onclick="navigate('broadcast')">
-              <div class="qa-icon">📢</div>
-              <div class="qa-label">Broadcast</div>
-              <div class="qa-desc">Send notice to all agencies</div>
-            </button>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title"><span class="icon">📢</span> Latest Broadcast</div>
-          <div id="latest-broadcast" style="background: var(--navy); border-radius: var(--radius-sm); padding: 14px 16px; border-left: 3px solid var(--gold);">
-            <div class="bc-date" style="font-size: 12px; color: var(--text-dim); margin-bottom: 6px;">Loading…</div>
-            <div class="bc-msg" style="font-size: 13px; line-height: 1.6;">Fetching latest broadcast…</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- SUBMIT -->
-      <div class="page" id="page-submit">
-        <div class="card">
-          <div class="card-title"><span class="icon">✏️</span> Submit Questions</div>
-          <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px;">Add safety questions to NAAD. All submissions are reviewed by CMG before going live.</p>
-
-          <!-- Excel template download -->
-          <div style="background:rgba(29,158,117,0.08);border:1px solid rgba(29,158,117,0.25);border-radius:10px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-            <div style="font-size:22px;">📥</div>
-            <div style="flex:1;min-width:0;">
-              <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:3px;">Download Excel Template</div>
-              <div style="font-size:12px;color:var(--text-dim);">Prefer to submit many questions at once? Download the template, fill it in and upload below.</div>
-            </div>
-            <button class="submit-btn" style="padding:9px 18px;font-size:13px;" onclick="downloadTemplate()">⬇️ Download Template</button>
-          </div>
-
-          <!-- Tab switcher -->
-          <div style="display:flex;gap:0;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:22px;">
-            <button id="tab-type" class="submit-tab active" onclick="switchSubmitTab('type')">✏️ Type Question</button>
-            <button id="tab-upload" class="submit-tab" onclick="switchSubmitTab('upload')">📤 Upload Excel</button>
-          </div>
-
-          <div id="submit-type-panel">
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-            <div class="form-group">
-              <label class="form-label">Module <span class="req">*</span></label>
-              <select class="form-select" id="q-module">
-                <option value="">— Select Module —</option>
-                <option>Fire Safety (GFS)</option>
-                <option>Road Safety (MTTD)</option>
-                <option>Disaster Management (NADMO)</option>
-                <option>Health & Hygiene (GHS)</option>
-                <option>Environmental Safety (EPA)</option>
-                <option>General Safety</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Level <span class="req">*</span></label>
-              <select class="form-select" id="q-level">
-                <option value="">— Select Level —</option>
-                <option>Level 1 — Easy</option>
-                <option>Level 2 — Medium</option>
-                <option>Level 3 — Hard</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Question <span class="req">*</span></label>
-            <textarea class="form-textarea" id="q-text" placeholder="Write the question here…" maxlength="500" oninput="updateCount('q-text','q-count',500)"></textarea>
-            <div class="char-count"><span id="q-count">0</span>/500</div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Answer Options <span class="req">*</span></label>
-            <div class="options-grid">
-              <div class="option-box">
-                <span class="option-label">A</span>
-                <input class="form-input" id="opt-a" placeholder="Option A">
-              </div>
-              <div class="option-box">
-                <span class="option-label">B</span>
-                <input class="form-input" id="opt-b" placeholder="Option B">
-              </div>
-              <div class="option-box">
-                <span class="option-label">C</span>
-                <input class="form-input" id="opt-c" placeholder="Option C">
-              </div>
-              <div class="option-box">
-                <span class="option-label">D</span>
-                <input class="form-input" id="opt-d" placeholder="Option D">
-              </div>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Correct Answer <span class="req">*</span></label>
-            <div class="correct-row" id="correct-row">
-              <button class="correct-opt" onclick="selectCorrect(this,'A')">A</button>
-              <button class="correct-opt" onclick="selectCorrect(this,'B')">B</button>
-              <button class="correct-opt" onclick="selectCorrect(this,'C')">C</button>
-              <button class="correct-opt" onclick="selectCorrect(this,'D')">D</button>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Explanation <span class="req">*</span></label>
-            <textarea class="form-textarea" id="q-explanation" placeholder="Why is this the correct answer? Cite guidelines or facts." maxlength="600" oninput="updateCount('q-explanation','exp-count',600)"></textarea>
-            <div class="char-count"><span id="exp-count">0</span>/600</div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Notes (optional)</label>
-            <input class="form-input" id="q-notes" placeholder="Any notes for the reviewer…">
-          </div>
-
-          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px;">
-            <button class="submit-btn" onclick="submitQuestion()">📤 Submit Question for Review</button>
-            <button class="ghost-btn" onclick="saveDraft()">💾 Save Draft</button>
-            <span id="draft-status" style="font-size:11px;color:var(--text-dim);">📝 Draft auto-saves every 30s</span>
-          </div>
-          </div><!-- end submit-type-panel -->
-
-          <!-- UPLOAD EXCEL panel -->
-          <div id="submit-upload-panel" style="display:none;">
-            <div style="border:2px dashed var(--border-strong);border-radius:12px;padding:40px 20px;text-align:center;cursor:pointer;position:relative;transition:all 0.2s;" id="excel-drop-zone" onclick="document.getElementById('excel-file-input').click()">
-              <input type="file" id="excel-file-input" accept=".xlsx" style="display:none;" onchange="handleExcelUpload(this)">
-              <div style="font-size:40px;margin-bottom:12px;">📊</div>
-              <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:6px;">Drop your Excel file here</div>
-              <div style="font-size:12px;color:var(--text-dim);">or click to browse · .xlsx only · Max 10MB</div>
-              <button class="ghost-btn" style="margin-top:14px;" onclick="event.stopPropagation();document.getElementById('excel-file-input').click()">Browse Files</button>
-            </div>
-            <div id="excel-preview" style="margin-top:16px;display:none;">
-              <div class="card-title" style="font-size:13px;margin-bottom:12px;">🔍 Pre-Upload Validation Report</div>
-              <div id="excel-report"></div>
-              <div style="display:flex;gap:10px;margin-top:14px;">
-                <button class="submit-btn" onclick="proceedExcelUpload()">📤 Proceed with Upload</button>
-                <button class="ghost-btn" onclick="cancelExcelUpload()">✕ Cancel</button>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- MY QUESTIONS -->
-      <div class="page" id="page-my-questions">
-        <div class="card">
-          <div class="card-title"><span class="icon">📋</span> My Submitted Questions</div>
-          <div class="filter-tabs">
-            <button class="filter-tab active" onclick="filterQ(this,'all','my')">All</button>
-            <button class="filter-tab" onclick="filterQ(this,'pending','my')">⏳ Pending</button>
-            <button class="filter-tab" onclick="filterQ(this,'approved','my')">✅ Approved</button>
-            <button class="filter-tab" onclick="filterQ(this,'rejected','my')">❌ Rejected</button>
-          </div>
-          <div style="overflow-x:auto;">
-            <table class="q-table" id="my-q-table">
-              <thead>
-                <tr>
-                  <th>Question</th>
-                  <th>Module</th>
-                  <th>Level</th>
-                  <th>Status</th>
-                  <th>Submitted</th>
-                </tr>
-              </thead>
-              <tbody id="my-q-body"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- REVIEW -->
-      <div class="page" id="page-review">
-        <div class="card">
-          <div class="card-title"><span class="icon">🔍</span> Review All Submissions
-            <button class="ghost-btn" style="margin-left:auto;padding:5px 12px;font-size:11px;" onclick="loadReviewQuestions()">🔄 Refresh</button>
-          </div>
-          <div class="stats-grid" style="grid-template-columns: repeat(3,1fr); margin-bottom: 20px;">
-            <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value gold" id="rv-total">⏳</div></div>
-            <div class="stat-card"><div class="stat-label">Approved</div><div class="stat-value green" id="rv-approved">⏳</div></div>
-            <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value gold" id="rv-pending">⏳</div></div>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
-            <div class="filter-tabs" style="margin:0;">
-              <button class="filter-tab active" onclick="filterQ(this,'all','review')">All</button>
-              <button class="filter-tab" onclick="filterQ(this,'pending','review')">⏳ Pending</button>
-              <button class="filter-tab" onclick="filterQ(this,'approved','review')">✅ Approved</button>
-              <button class="filter-tab" onclick="filterQ(this,'rejected','review')">❌ Rejected</button>
-            </div>
-            <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="ghost-btn" style="font-size:11px;padding:5px 12px;color:var(--success);border-color:var(--success);" onclick="approveAllPending()">✅ Approve All Pending</button>
-              <button class="ghost-btn" style="font-size:11px;padding:5px 12px;color:var(--success);border-color:var(--success);" onclick="approveSelected()">✅ Approve Selected</button>
-              <button class="ghost-btn" style="font-size:11px;padding:5px 12px;color:var(--danger);border-color:var(--danger);" onclick="rejectSelected()">❌ Reject Selected</button>
-            </div>
-          </div>
-          <div style="overflow-x:auto;">
-            <table class="q-table">
-              <thead>
-                <tr>
-                  <th><input type="checkbox" id="select-all-cb" onclick="toggleSelectAll(this)"></th>
-                  <th>Question</th>
-                  <th>Agency</th>
-                  <th>Module</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="review-body"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- AGENCIES -->
-      <div class="page" id="page-agencies">
-        <div class="card">
-          <div class="card-title"><span class="icon">🏛️</span> Agency Overview
-            <button class="ghost-btn" style="margin-left:auto;padding:5px 12px;font-size:11px;" onclick="renderAgencies()">🔄 Refresh</button>
-          </div>
-
-          <!-- Online now strip -->
-          <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--text-dim);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px;">🟢 Online Now</div>
-          <div class="online-strip" id="online-strip">
-            <div style="color:var(--text-dim);font-size:13px;">Checking presence…</div>
-          </div>
-
-          <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--text-dim);letter-spacing:0.06em;text-transform:uppercase;margin:16px 0 10px;">All Agencies</div>
-          <div class="agencies-grid" id="agencies-grid"></div>
-
-          <!-- Export log -->
-          <div style="margin-top:28px;">
-            <div class="card-title" style="font-size:13px;margin-bottom:12px;">📥 Export & Download Log</div>
-            <p style="font-size:12px;color:var(--text-dim);margin-bottom:12px;">Every time an agency exports a quiz file, it is recorded here.</p>
-            <div style="overflow-x:auto;">
-              <table class="q-table">
-                <thead><tr><th>Agency</th><th>Module</th><th>Questions</th><th>Date & Time</th><th>Status</th></tr></thead>
-                <tbody id="export-log-body">
-                  <tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:20px;">No exports recorded yet.</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- PROGRESS -->
-      <div class="page" id="page-progress">
-        <div class="card">
-          <div class="card-title"><span class="icon">📊</span> Agency Submission Progress</div>
-          <p style="font-size:12px;color:var(--text-dim);margin-bottom:22px;">Target: 30 questions · 10 Easy · 12 Medium · 8 Hard per agency</p>
-          <div id="progress-list"></div>
-
-          <div style="margin-top:24px;background:rgba(42,111,184,0.08);border:1px solid rgba(42,111,184,0.25);border-radius:10px;padding:16px 18px;">
-            <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:6px;">🛡️ General Safety — Auto Module</div>
-            <div style="font-size:12px;color:var(--text-dim);line-height:1.7;">Automatically assembled from all approved agency questions. The system picks the best-balanced set — 2–3 questions from each agency — to create a cross-agency safety overview.</div>
-          </div>
-          <div style="margin-top:12px;background:rgba(232,160,32,0.08);border:1px solid rgba(232,160,32,0.2);border-radius:10px;padding:16px 18px;">
-            <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:6px;">🎓 Student Safety — CMG Exclusive</div>
-            <div style="font-size:12px;color:var(--text-dim);line-height:1.7;">Solely managed by CMG. Only the CMG administrator can submit questions for this module.</div>
-          </div>
-        </div>
-
-        <!-- DEADLINES -->
-      <div class="page" id="page-deadlines">
-        <div class="card">
-          <div class="card-title"><span class="icon">⏰</span> Submission Deadlines</div>
-          <div id="deadlines-list"></div>
-        </div>
-        <div class="card">
-          <div class="card-title"><span class="icon">📅</span> Set New Deadline</div>
-          <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;">
-            <div style="flex: 1; min-width: 180px;">
-              <label class="form-label">Module</label>
-              <select class="form-select" id="dl-module">
-                <option>Fire Safety (GFS)</option>
-                <option>Road Safety (MTTD)</option>
-                <option>Disaster Management (NADMO)</option>
-                <option>Health & Hygiene (GHS)</option>
-              </select>
-            </div>
-            <div style="flex: 1; min-width: 160px;">
-              <label class="form-label">Deadline Date</label>
-              <input class="form-input" type="date" id="dl-date">
-            </div>
-            <button class="submit-btn" onclick="setDeadline()">Set</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- BROADCAST -->
-      <div class="page" id="page-broadcast">
-        <div class="card">
-          <div class="card-title"><span class="icon">📢</span> Broadcast Message</div>
-          <div class="form-group">
-            <label class="form-label">Compose Message</label>
-            <textarea class="form-textarea" id="broadcast-msg" placeholder="Write your notice for all agencies…" style="min-height: 120px;"></textarea>
-          </div>
-          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <button class="submit-btn" onclick="sendBroadcast()">📢 Send to All Agencies</button>
-            <button class="ghost-btn" onclick="document.getElementById('broadcast-msg').value=''">🗑 Clear</button>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-title"><span class="icon">📋</span> Broadcast History</div>
-          <div id="broadcast-history"></div>
-        </div>
-      </div>
-
-      <!-- MESSAGES -->
-      <div class="page" id="page-messages">
-        <div class="card">
-          <div class="card-title"><span class="icon">💬</span> Agency Messages</div>
-          <p style="font-size:13px;color:var(--text-dim);margin-bottom:18px;">Direct messaging between CMG and agency officers. Click an agency to open the conversation.</p>
-          <div id="msg-agency-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;"></div>
-        </div>
-      </div>
-
-      <!-- EXPORT -->
-      <div class="page" id="page-export">
-        <div class="card">
-          <div class="card-title"><span class="icon">💾</span> Export Quiz Files</div>
-          <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 22px;">Download approved questions as ready-to-use quiz HTML files for pen drives.</p>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 22px;" id="export-modules"></div>
-          <div class="form-group" style="max-width: 360px;">
-            <label class="form-label">🔐 Quiz Password (optional)</label>
-            <input class="form-input" id="export-pw" placeholder="Leave blank for no password">
-          </div>
-          <div class="card" style="background: var(--navy); margin-top: 0;">
-            <div style="font-size: 13px; font-weight: 600; margin-bottom: 12px;">📋 How to use exported files</div>
-            <ol style="padding-left: 18px; color: var(--text-dim); font-size: 13px; line-height: 2;">
-              <li>Click a module button above to download its quiz HTML file.</li>
-              <li>Copy the file onto the pen drive into the correct folder.</li>
-              <li>Replace the old quiz file with the new one — keep the same filename.</li>
-              <li>Open in any browser to confirm questions load correctly.</li>
-            </ol>
-          </div>
-        </div>
-      </div>
-
-      <!-- LEADERBOARD -->
-      <div class="page" id="page-leaderboard">
-        <div class="card">
-          <div class="card-title"><span class="icon">🥇</span> Live Leaderboard</div>
-          <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 20px;">Top cadets in Ghana's national public safety quiz</p>
-          <div id="leaderboard-list"></div>
-        </div>
-      </div>
-
-      <!-- ANALYTICS -->
-      <div class="page" id="page-analytics">
-        <div class="card">
-          <div class="card-title"><span class="icon">📈</span> Analytics Dashboard</div>
-          <div class="stats-grid" style="margin-bottom: 24px;">
-            <div class="stat-card"><div class="stat-label">Total Attempts</div><div class="stat-value gold">1,248</div></div>
-            <div class="stat-card"><div class="stat-label">Avg Score</div><div class="stat-value green">72%</div></div>
-            <div class="stat-card"><div class="stat-label">Male</div><div class="stat-value blue">54%</div></div>
-            <div class="stat-card"><div class="stat-label">Female</div><div class="stat-value">46%</div></div>
           </div>
           <div style="font-size: 13px; font-weight: 600; margin-bottom: 14px;">📊 Avg Score by Module</div>
           <div id="analytics-bars"></div>
@@ -3489,6 +3088,74 @@ async function rejectSelected() {
   loadReviewQuestions(); renderDashboard();
 }
 
+
+// ── Online Presence ──
+let _onlineAgencies = {};
+let _presenceInterval = null;
+
+async function registerPresence() {
+  if (!currentUser || currentUser.role === 'admin') return;
+  await apiPost({
+    action: 'pushNotification',
+    targetAgency: 'Admin',
+    type: 'type-presence',
+    title: currentUser.name + ' is online',
+    msg: currentUser.code + ' logged in at ' + new Date().toLocaleTimeString()
+  });
+  clearInterval(_presenceInterval);
+  _presenceInterval = setInterval(async function() {
+    await apiPost({
+      action: 'pushNotification',
+      targetAgency: 'Admin',
+      type: 'type-presence',
+      title: currentUser.name + ' · heartbeat',
+      msg: 'Active at ' + new Date().toLocaleTimeString()
+    });
+  }, 120000);
+}
+
+async function checkOnlinePresence() {
+  var data = await api({ action: 'getNotifications', agency: 'Admin' });
+  var notifs = (data && data.notifications) || [];
+  var now = Date.now();
+  var WIN = 5 * 60 * 1000;
+  _onlineAgencies = {};
+  notifs.filter(function(n){ return n.type === 'type-presence' && (now - (n.ts||0)) < WIN; })
+    .forEach(function(n) {
+      var name = n.title.replace(' is online','').replace(' · heartbeat','').trim();
+      if (!_onlineAgencies[name] || n.ts > _onlineAgencies[name].lastSeen)
+        _onlineAgencies[name] = { lastSeen: n.ts || now };
+    });
+  var count = Object.keys(_onlineAgencies).length;
+  var badge = document.getElementById('online-count-badge');
+  var text  = document.getElementById('online-count-text');
+  if (badge) badge.style.display = count > 0 ? 'inline-flex' : 'none';
+  if (text)  text.textContent = count + ' online';
+  var onlineStat = document.getElementById('stat-online');
+  if (onlineStat) onlineStat.textContent = count || '—';
+  return _onlineAgencies;
+}
+
+// ── PWA Update Banner ──
+function showUpdateBanner() {
+  var existing = document.getElementById('update-banner');
+  if (existing) return;
+  var banner = document.createElement('div');
+  banner.id = 'update-banner';
+  banner.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#f0a820,#c87c10);color:#0d1a2e;border-radius:50px;padding:12px 24px;font-family:Syne,sans-serif;font-weight:800;font-size:13px;box-shadow:0 8px 32px rgba(232,160,32,0.4);z-index:9999;display:flex;align-items:center;gap:12px;white-space:nowrap;';
+  banner.innerHTML = '🔄 New version available! <button onclick="doUpdate()" style="background:#0d1a2e;color:#e8a020;border:none;border-radius:6px;padding:6px 14px;font-family:Syne,sans-serif;font-weight:700;font-size:12px;cursor:pointer;">Update Now</button><button onclick="this.parentElement.remove()" style="background:none;border:none;color:#0d1a2e;font-size:18px;cursor:pointer;padding:0 4px;">✕</button>';
+  document.body.appendChild(banner);
+}
+
+function doUpdate() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistration().then(function(reg) {
+      if (reg && reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      else window.location.reload();
+    });
+  }
+}
+
 // ── INIT ──
 // ════════════════════════════════════════════════════════
 // NAVIGATION
@@ -3671,5 +3338,6 @@ if ('serviceWorker' in navigator && location.hostname === 'cadetmediaoffice.gith
 }
 </script>
 
+<div id="update-banner" style="display:none;"></div>
 </body>
 </html>
